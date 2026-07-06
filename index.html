@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EEYEL-DSA Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #131720;
+      --card:      #181d28;
+      --border:    #232a3a;
+      --border2:   #2e3850;
+      --accent:    #4ade80;       /* terminal green — the signature */
+      --accent2:   #22d3ee;       /* cyan for secondary highlights */
+      --muted:     #4a5568;
+      --text:      #c9d1e0;
+      --text-dim:  #7a8599;
+      --text-bright: #eef2ff;
+      --danger:    #f87171;
+      --warn:      #fbbf24;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Inter', sans-serif;
+      --radius:    6px;
+      --gutter:    24px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── SCANLINE OVERLAY (subtle texture — the aesthetic risk) ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.04) 3px,
+        rgba(0,0,0,0.04) 4px
+      );
+      z-index: 9999;
+    }
+
+    /* ─── LAYOUT ─── */
+    .shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      grid-column: 1 / -1;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 var(--gutter);
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: #28ca42; }
+
+    .topbar-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+    .topbar-title span { color: var(--accent); }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--border2);
+      color: var(--text-dim);
+    }
+    .badge-green { border-color: var(--accent); color: var(--accent); }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      overflow-y: auto;
+      position: sticky;
+      top: 52px;
+      height: calc(100vh - 52px);
+    }
+
+    .sidebar-section {
+      padding: 0 16px 8px;
+    }
+    .sidebar-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 8px 4px 6px;
+      display: block;
+    }
+
+    .week-btn {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 8px 10px;
+      cursor: pointer;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, color 0.15s;
+      position: relative;
+    }
+    .week-btn:hover {
+      background: var(--card);
+      color: var(--text);
+    }
+    .week-btn.active {
+      background: rgba(74,222,128,0.08);
+      color: var(--accent);
+    }
+    .week-btn.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .week-icon {
+      font-size: 11px;
+      opacity: 0.5;
+    }
+    .week-badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      background: var(--card);
+      border-radius: 3px;
+      color: var(--muted);
+    }
+    .week-btn.active .week-badge {
+      background: rgba(74,222,128,0.15);
+      color: var(--accent);
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 16px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      margin: 0 16px;
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      font-size: 12px;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sidebar-link:hover {
+      background: var(--card);
+      color: var(--text);
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main {
+      overflow-y: auto;
+      padding: var(--gutter);
+      min-height: calc(100vh - 52px);
+    }
+
+    /* ─── WELCOME SCREEN ─── */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      text-align: center;
+      gap: 20px;
+    }
+    .welcome-ascii {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--accent);
+      opacity: 0.7;
+      letter-spacing: 0.05em;
+    }
+    .welcome h1 {
+      font-family: var(--mono);
+      font-size: 22px;
+      color: var(--text-bright);
+      font-weight: 500;
+    }
+    .welcome h1 span { color: var(--accent); }
+    .welcome p {
+      color: var(--text-dim);
+      max-width: 440px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .welcome-prompt {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent2);
+      margin-top: 8px;
+    }
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--accent2);
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ─── LOADING ─── */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 40vh;
+      gap: 16px;
+    }
+    .spinner {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+    }
+    .progress-bar {
+      width: 200px;
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      animation: progress 1.5s ease-in-out infinite;
+      transform-origin: left;
+    }
+    @keyframes progress {
+      0%   { transform: scaleX(0); margin-left: 0; }
+      50%  { transform: scaleX(0.6); }
+      100% { transform: scaleX(0); margin-left: 100%; }
+    }
+
+    /* ─── WEEK HEADER ─── */
+    .week-header {
+      margin-bottom: 24px;
+    }
+    .breadcrumb {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .breadcrumb-sep { color: var(--muted); }
+    .breadcrumb-current { color: var(--accent); }
+    .week-title {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-bright);
+    }
+    .week-title span { color: var(--accent); }
+    .week-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .meta-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .meta-pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ─── QUESTIONS LIST ─── */
+    .questions-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .question-card:hover {
+      border-color: var(--border2);
+    }
+    .question-card.expanded {
+      border-color: rgba(74,222,128,0.3);
+    }
+
+    .question-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .question-header:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    .q-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      min-width: 26px;
+    }
+    .q-title {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .q-expand {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      transition: transform 0.2s, color 0.2s;
+    }
+    .question-card.expanded .q-expand {
+      transform: rotate(90deg);
+      color: var(--accent);
+    }
+    .q-lang {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(74,222,128,0.08);
+      color: var(--accent);
+      border: 1px solid rgba(74,222,128,0.2);
+    }
+
+    /* ─── CODE PANEL ─── */
+    .code-panel {
+      display: none;
+      border-top: 1px solid var(--border);
+    }
+    .question-card.expanded .code-panel {
+      display: block;
+    }
+
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-filename {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      flex: 1;
+    }
+    .code-filename::before {
+      content: '📄 ';
+      font-size: 10px;
+    }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .copy-btn.copied {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(74,222,128,0.08);
+    }
+
+    .code-loading {
+      padding: 24px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .code-error {
+      padding: 24px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--danger);
+    }
+
+    .code-wrapper {
+      position: relative;
+      overflow: auto;
+      max-height: 520px;
+    }
+    pre {
+      margin: 0;
+      padding: 20px 18px 20px 0;
+      counter-reset: line;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    pre code {
+      display: block;
+    }
+    .line {
+      display: flex;
+    }
+    .line-num {
+      min-width: 48px;
+      padding: 0 16px 0 18px;
+      text-align: right;
+      color: var(--muted);
+      user-select: none;
+      font-size: 11px;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+    .line-content {
+      flex: 1;
+      white-space: pre;
+      padding-right: 18px;
+    }
+
+    /* ─── C syntax highlighting ─── */
+    .kw { color: #c084fc; }   /* keywords */
+    .ty { color: #60a5fa; }   /* types */
+    .fn { color: #4ade80; }   /* functions */
+    .str { color: #fbbf24; }  /* strings */
+    .num { color: #f9a8d4; }  /* numbers */
+    .cm { color: #4a5568; font-style: italic; }  /* comments */
+    .pp { color: #22d3ee; }   /* preprocessor */
+    .op { color: #94a3b8; }   /* operators */
+    .sc { color: #e879f9; }   /* special chars in strings */
+
+    /* ─── ERROR ─── */
+    .error-box {
+      background: rgba(248,113,113,0.06);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: var(--radius);
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--danger);
+    }
+
+    /* ─── NO CONTENT ─── */
+    .no-code {
+      padding: 28px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    .no-code span { color: var(--muted); }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 700px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        overflow-x: auto;
+        padding: 10px 12px;
+        gap: 6px;
+      }
+      .sidebar-section { padding: 0; }
+      .sidebar-label { display: none; }
+      .sidebar-divider { display: none; }
+      .sidebar-link { display: none; }
+      .week-btn {
+        white-space: nowrap;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .week-badge { display: none; }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-dots">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+    </div>
+    <span class="topbar-title">~/EEYEL-DSA — <span>soorzj</span>/EEYEL-DSA</span>
+    <div class="topbar-right">
+      <span class="badge badge-green">● live</span>
+      <span class="badge">C lang</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-label">Weeks</span>
+      <div id="week-list">
+        <!-- populated by JS -->
+        <div style="padding:8px 10px; font-family:var(--mono); font-size:12px; color:var(--muted)">loading…</div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Repository</span>
+    </div>
+    <a href="https://github.com/soorzj/EEYEL-DSA" target="_blank" class="sidebar-link">
+      ⎆ View on GitHub
+    </a>
+    <a href="https://github.com/soorzj/EEYEL-DSA/archive/refs/heads/main.zip" class="sidebar-link">
+      ↓ Download ZIP
+    </a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="welcome" id="welcome">
+      <pre class="welcome-ascii">
+ ___  ___ _   _ ___ _       ___  ____    _
+| __|| __| |_| | __| |     |   \/ ___|  /_\
+| _| | _|  _ / | _|| |__  | |) \__ \  / _ \
+|___||___|_|_\ |___|____| |___/|___/ /_/ \_\</pre>
+      <h1>EEYEL<span>-DSA</span> Explorer</h1>
+      <p>Data Structures &amp; Algorithms programs for the EL batch of '29 at CET. Browse weekly questions and view the C source code — no GitHub account needed.</p>
+      <div class="welcome-prompt">$ select a week to begin<span class="cursor"></span></div>
+    </div>
+    <div id="content" style="display:none"></div>
+  </main>
+
+</div>
+
+<script>
+const OWNER = 'soorzj';
+const REPO  = 'EEYEL-DSA';
+const API   = 'https://api.github.com';
+const RAW   = 'https://raw.githubusercontent.com';
+
+// ─── CACHE ───────────────────────────────────────────────────
+const cache = {};
+
+async function apiFetch(url) {
+  if (cache[url]) return cache[url];
+  const res = await fetch(url, { headers: { Accept: 'application/vnd.github.v3+json' } });
+  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
+  const data = await res.json();
+  cache[url] = data;
+  return data;
+}
+
+async function rawFetch(path) {
+  const url = `${RAW}/${OWNER}/${REPO}/main/${encodeURIComponent(path).replace(/%2F/g,'/').replace(/%20/g,'%20')}`;
+  if (cache[url]) return cache[url];
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Raw ${res.status}`);
+  const text = await res.text();
+  cache[url] = text;
+  return text;
+}
+
+// ─── SYNTAX HIGHLIGHT (C) ────────────────────────────────────
+function highlightC(code) {
+  const keywords = ['auto','break','case','char','const','continue','default','do','double',
+    'else','enum','extern','float','for','goto','if','inline','int','long','register',
+    'return','short','signed','sizeof','static','struct','switch','typedef','union',
+    'unsigned','void','volatile','while','NULL','true','false'];
+  const types = ['int','char','float','double','void','long','short','unsigned','signed',
+    'struct','union','enum','typedef','bool','size_t','FILE','string'];
+
+  const lines = code.split('\n');
+  return lines.map(raw => {
+    let l = raw
+      // escape HTML first
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // block comments (simple single-line treatment)
+    l = l.replace(/(\/\/.*$)/gm, '<span class="cm">$1</span>');
+
+    // preprocessor
+    l = l.replace(/^(\s*)(#\w+)/g, '$1<span class="pp">$2</span>');
+
+    // strings
+    l = l.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="str">$1</span>');
+
+    // char literals
+    l = l.replace(/('(?:[^'\\]|\\.)+')/g, '<span class="str">$1</span>');
+
+    // numbers
+    l = l.replace(/\b(\d+\.?\d*[fFuUlL]*)\b/g, '<span class="num">$1</span>');
+
+    // keywords
+    const kwPat = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
+    l = l.replace(kwPat, '<span class="kw">$1</span>');
+
+    // function calls: word( — not keywords
+    l = l.replace(/\b([a-zA-Z_]\w*)\s*(?=\()/g, (m, name) => {
+      if (keywords.includes(name)) return m;
+      return `<span class="fn">${name}</span>`;
+    });
+
+    return l;
+  }).join('\n');
+}
+
+// ─── RENDER CODE ─────────────────────────────────────────────
+function renderCode(rawCode) {
+  const highlighted = highlightC(rawCode);
+  const lines = highlighted.split('\n');
+  const lineHtml = lines.map((ln, i) =>
+    `<div class="line"><span class="line-num">${i+1}</span><span class="line-content">${ln || ' '}</span></div>`
+  ).join('');
+  return `<div class="code-wrapper"><pre><code>${lineHtml}</code></pre></div>`;
+}
+
+// ─── PARSE README for questions ──────────────────────────────
+function parseReadme(md) {
+  const questions = [];
+  const lines = md.split('\n');
+  let current = null;
+  for (const line of lines) {
+    const m = line.match(/^##\s+(.+)/);
+    if (m) {
+      if (current) questions.push(current);
+      current = { title: m[1].trim(), body: [] };
+    } else if (current) {
+      current.body.push(line);
+    }
+  }
+  if (current) questions.push(current);
+  return questions;
+}
+
+// ─── LOAD WEEK LIST ──────────────────────────────────────────
+let weeks = [];
+
+async function loadWeeks() {
+  try {
+    const contents = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents`);
+    weeks = contents
+      .filter(f => f.type === 'dir' && /^week\s*\d+/i.test(f.name))
+      .sort((a,b) => {
+        const na = parseInt(a.name.match(/\d+/)?.[0] || 0);
+        const nb = parseInt(b.name.match(/\d+/)?.[0] || 0);
+        return na - nb;
+      });
+    renderWeekList();
+  } catch(e) {
+    document.getElementById('week-list').innerHTML =
+      `<div style="padding:8px 10px; color:var(--danger); font-family:var(--mono); font-size:11px">Error: ${e.message}</div>`;
+  }
+}
+
+function renderWeekList() {
+  const el = document.getElementById('week-list');
+  if (!weeks.length) {
+    el.innerHTML = `<div style="padding:8px 10px; font-family:var(--mono); font-size:12px; color:var(--muted)">no weeks found</div>`;
+    return;
+  }
+  el.innerHTML = weeks.map((w,i) =>
+    `<button class="week-btn" onclick="selectWeek(${i})" id="wb-${i}">
+      <span class="week-icon">▸</span>
+      ${w.name}
+      <span class="week-badge" id="wbadge-${i}">…</span>
+    </button>`
+  ).join('');
+  // load file counts in background
+  weeks.forEach((w,i) => loadWeekBadge(w,i));
+}
+
+async function loadWeekBadge(week, idx) {
+  try {
+    const files = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(week.name)}`);
+    const cFiles = files.filter(f => f.name.endsWith('.c'));
+    const badge = document.getElementById(`wbadge-${idx}`);
+    if (badge) badge.textContent = `${cFiles.length}q`;
+  } catch(_) {}
+}
+
+// ─── SELECT WEEK ─────────────────────────────────────────────
+let currentWeek = null;
+
+async function selectWeek(idx) {
+  // Update sidebar active state
+  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`wb-${idx}`)?.classList.add('active');
+
+  const week = weeks[idx];
+  currentWeek = week;
+
+  document.getElementById('welcome').style.display = 'none';
+  const content = document.getElementById('content');
+  content.style.display = 'block';
+  content.innerHTML = `<div class="loading"><div class="spinner">$ fetching ${week.name}/...</div><div class="progress-bar"><div class="progress-fill"></div></div></div>`;
+
+  try {
+    // Fetch week folder + README in parallel
+    const [files, readmeMd] = await Promise.all([
+      apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(week.name)}`),
+      rawFetch(`${week.name}/README.md`).catch(() => null)
+    ]);
+
+    const cFiles = files.filter(f => f.name.endsWith('.c'));
+    const questions = readmeMd ? parseReadme(readmeMd) : [];
+
+    renderWeek(week, questions, cFiles);
+  } catch(e) {
+    content.innerHTML = `<div class="error-box">Failed to load ${week.name}: ${e.message}</div>`;
+  }
+}
+
+// ─── RENDER WEEK ─────────────────────────────────────────────
+function renderWeek(week, questions, cFiles) {
+  const content = document.getElementById('content');
+
+  const qCount = Math.max(questions.length, cFiles.length);
+
+  let html = `
+    <div class="week-header">
+      <div class="breadcrumb">
+        <span>EEYEL-DSA</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">${week.name}</span>
+      </div>
+      <div class="week-title"><span>$</span> ls ${week.name}/</div>
+      <div class="week-meta">
+        <div class="meta-pill"><span class="meta-pill-dot"></span>${qCount} question${qCount!==1?'s':''}</div>
+        <div class="meta-pill">${cFiles.length} .c file${cFiles.length!==1?'s':''}</div>
+        <div class="meta-pill">${questions.length ? 'README ✓' : 'no README'}</div>
+      </div>
+    </div>
+    <div class="questions-grid">`;
+
+  if (qCount === 0) {
+    html += `<div class="no-code">
+      <span>— no questions found in this week yet —</span>
+    </div>`;
+  } else {
+    // Merge questions + files
+    for (let i = 0; i < qCount; i++) {
+      const q = questions[i];
+      const f = cFiles[i];
+      const qTitle = q ? q.title : (f ? f.name.replace('.c','') : `Question ${i+1}`);
+      const fname  = f ? f.name : null;
+
+      html += `
+        <div class="question-card" id="qcard-${i}">
+          <div class="question-header" onclick="toggleQuestion(${i}, '${week.name}', '${fname || ''}')">
+            <span class="q-number">${String(i+1).padStart(2,'0')}.</span>
+            <span class="q-title">${escapeHtml(qTitle)}</span>
+            ${fname ? `<span class="q-lang">C</span>` : '<span class="q-lang" style="opacity:0.4">—</span>'}
+            <span class="q-expand">▶</span>
+          </div>
+          <div class="code-panel" id="cpanel-${i}">
+            <div class="code-loading">$ cat ${fname || '…'}</div>
+          </div>
+        </div>`;
+    }
+  }
+
+  html += `</div>`;
+  content.innerHTML = html;
+}
+
+// ─── TOGGLE QUESTION ─────────────────────────────────────────
+const loadedFiles = {};
+
+async function toggleQuestion(idx, weekName, filename) {
+  const card  = document.getElementById(`qcard-${idx}`);
+  const panel = document.getElementById(`cpanel-${idx}`);
+  const wasOpen = card.classList.contains('expanded');
+
+  // Close all open
+  document.querySelectorAll('.question-card.expanded').forEach(c => c.classList.remove('expanded'));
+
+  if (wasOpen) return; // toggled closed
+
+  card.classList.add('expanded');
+
+  if (!filename) {
+    panel.innerHTML = `<div class="no-code"><span>no source file linked to this question</span></div>`;
+    return;
+  }
+
+  const key = `${weekName}/${filename}`;
+  if (loadedFiles[key]) {
+    panel.innerHTML = loadedFiles[key];
+    return;
+  }
+
+  // Show loading
+  panel.innerHTML = `<div class="code-loading">$ fetching ${filename}…</div>`;
+
+  try {
+    const raw = await rawFetch(`${weekName}/${filename}`);
+    const toolbar = `
+      <div class="code-toolbar">
+        <span class="code-filename">${weekName}/${filename}</span>
+        <button class="copy-btn" onclick="copyCode('${key}', this)">⎘ copy</button>
+      </div>`;
+    const codeHtml = toolbar + renderCode(raw);
+    loadedFiles[key] = codeHtml;
+    // store raw for copy
+    loadedFiles[key + '__raw'] = raw;
+    panel.innerHTML = codeHtml;
+  } catch(e) {
+    panel.innerHTML = `<div class="code-error">Could not fetch ${filename}: ${e.message}</div>`;
+  }
+}
+
+// ─── COPY CODE ───────────────────────────────────────────────
+async function copyCode(key, btn) {
+  const raw = loadedFiles[key + '__raw'];
+  if (!raw) return;
+  try {
+    await navigator.clipboard.writeText(raw);
+    btn.textContent = '✓ copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '⎘ copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  } catch(_) {}
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+loadWeeks();
+</script>
+
+</body>
+</html>
