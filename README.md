@@ -2,4 +2,6 @@
 
 ### Data Structures and Algorithms programs and tasks repository for the EL batch of '29 of CET. Upkeeped by fellow contributors
 
-### Take care when copying this work. Any plagarism related strikes on your academic materials with copied work from this are not my responsibility.  This has been created with the sole purpose of guidance or a study resourse for fellow B.Tech pursuers and upcoming batches.
+### Take care when copying this work. Any plagarism related strikes on your academic materials with copied work from this are not my responsibility.  
+
+### This repository has been created with the sole purpose of guidance or a study resourse for fellow classmates B.Tech pursuers and upcoming batches.
