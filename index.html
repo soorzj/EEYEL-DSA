@@ -50,10 +50,25 @@
       }
       body {
         background-color: #0a0a0a;
-        color: #d4d4d4;
+        color: #ffffff;
         margin: 0;
         height: 100vh;
         overflow: hidden;
+      }
+      /* High contrast label/value helpers for readability */
+      .hc-label {
+        color: #f8fafc; /* near-white for maximum contrast on dark bg */
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .hc-value {
+        color: #d1fae5; /* soft light green for values (good contrast) */
+        font-weight: 700;
+      }
+      .hc-small {
+        color: #f8fafc;
+        font-weight: 700;
+        font-size: 0.72rem;
       }
     </style>
   </head>
@@ -370,13 +385,13 @@
                             >
                               <Icon name="fileText" className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
                               <span className="truncate">README.md</span>
-                              <span className="text-[9px] text-neutral-600 font-mono leading-none shrink-0 ml-auto">tasks</span>
+                              <span className="text-[9px] hc-small font-mono leading-none shrink-0 ml-auto">tasks</span>
                             </button>
                           )}
 
                           {week.questions.length > 0 && (
                             <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
-                              <span className="text-[9px] text-neutral-600 font-bold tracking-widest block pl-1 uppercase font-mono">Lab Tasks</span>
+                              <span className="text-[9px] hc-small tracking-widest block pl-1 uppercase font-mono">Lab Tasks</span>
                               {week.questions.map(q => {
                                 const isActive = activeQuestionId === q.id && isSelected;
                                 return (
@@ -399,7 +414,7 @@
 
                           {week.files.length > 0 && (
                             <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
-                              <span className="text-[9px] text-neutral-600 font-bold tracking-widest block pl-1 uppercase font-mono">Source Files</span>
+                              <span className="text-[9px] hc-small tracking-widest block pl-1 uppercase font-mono">Source Files</span>
                               {week.files.map(file => {
                                 const isActive = activeFileName === file.name && isSelected;
                                 return (
@@ -414,7 +429,7 @@
                                   >
                                     <Icon name="fileCode" className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-600'}`} />
                                     <span className="truncate">{file.name}</span>
-                                    <span className="text-[9px] text-neutral-700 leading-none ml-auto shrink-0 font-mono">
+                                    <span className="text-[9px] hc-small leading-none ml-auto shrink-0 font-mono">
                                       {(file.size / 1024).toFixed(1)}k
                                     </span>
                                   </button>
@@ -432,16 +447,16 @@
 
             <div className="mt-auto pt-4 border-t border-neutral-800/60 font-mono text-[10px] text-neutral-600 space-y-1 select-none shrink-0">
               <div className="flex justify-between">
-                <span>WEEKS LOADED:</span>
-                <span className="text-emerald-500 font-bold">{weeks.length}</span>
+                <span className="hc-label">WEEKS LOADED:</span>
+                <span className="hc-value">{weeks.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>TOTAL QUESTIONS:</span>
-                <span className="text-neutral-400">{weeks.reduce((acc, w) => acc + w.questions.length, 0)}</span>
+                <span className="hc-label">TOTAL QUESTIONS:</span>
+                <span className="hc-value">{weeks.reduce((acc, w) => acc + w.questions.length, 0)}</span>
               </div>
               <div className="flex justify-between">
-                <span>C ANSWER FILES:</span>
-                <span className="text-neutral-400">{weeks.reduce((acc, w) => acc + w.files.length, 0)}</span>
+                <span className="hc-label">C ANSWER FILES:</span>
+                <span className="hc-value">{weeks.reduce((acc, w) => acc + w.files.length, 0)}</span>
               </div>
             </div>
           </div>
