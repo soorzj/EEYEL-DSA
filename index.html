@@ -50,25 +50,10 @@
       }
       body {
         background-color: #0a0a0a;
-        color: #ffffff;
+        color: #d4d4d4;
         margin: 0;
         height: 100vh;
         overflow: hidden;
-      }
-      /* High contrast label/value helpers for readability */
-      .hc-label {
-        color: #f8fafc; /* near-white for maximum contrast on dark bg */
-        font-weight: 700;
-        letter-spacing: 0.02em;
-      }
-      .hc-value {
-        color: #d1fae5; /* soft light green for values (good contrast) */
-        font-weight: 700;
-      }
-      .hc-small {
-        color: #f8fafc;
-        font-weight: 700;
-        font-size: 0.72rem;
       }
     </style>
   </head>
@@ -319,34 +304,34 @@
           <div className="bg-[#0d0d0d] h-full flex flex-col p-4 select-none">
             <div className="flex items-center justify-between mb-4 border-b border-neutral-800 pb-3">
               <div className="flex items-center space-x-2">
-                <span className="text-emerald-500 font-mono text-xs font-bold">&gt;_</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 font-mono">EXPLORER</span>
+                <span className="text-emerald-400 font-mono text-xs font-bold">&gt;_</span>
+                <span className="text-[11px] uppercase tracking-[0.2em] font-extrabold text-neutral-200 font-mono">EXPLORER</span>
               </div>
               {loading && (
-                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono px-1.5 py-0.5 rounded animate-pulse">
+                <span className="text-[9px] bg-emerald-500/25 border border-emerald-400 text-emerald-300 font-bold font-mono px-1.5 py-0.5 rounded animate-pulse">
                   SYNCING
                 </span>
               )}
             </div>
 
             <div className="relative mb-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded font-mono text-xs text-neutral-400">
-                <span className="text-emerald-500 font-bold">$</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900 border border-neutral-700 rounded font-mono text-xs text-neutral-300">
+                <span className="text-emerald-400 font-extrabold">$</span>
                 <input
                   type="text"
                   placeholder="grep tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent border-none text-zinc-300 focus:outline-none placeholder:text-neutral-700 text-xs"
+                  className="w-full bg-transparent border-none text-white font-semibold focus:outline-none placeholder:text-neutral-500 text-xs"
                 />
               </div>
             </div>
 
-            <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-600 mb-3 font-bold font-mono pl-1">STRUCTURE</div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-neutral-200 mb-3 font-extrabold font-mono pl-1">STRUCTURE</div>
 
             <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 text-left">
               {filteredWeeks.length === 0 ? (
-                <div className="text-center py-8 text-neutral-600 text-xs font-mono">no results found</div>
+                <div className="text-center py-8 text-neutral-400 text-xs font-bold font-mono">no results found</div>
               ) : (
                 filteredWeeks.map(week => {
                   const isExpanded = !!expandedWeeks[week.name];
@@ -358,54 +343,54 @@
                         onClick={() => toggleWeek(week.name)}
                         className={`flex items-center justify-between w-full py-1.5 px-2 rounded-sm text-left transition text-xs font-mono group cursor-pointer border-l ${
                           isSelected
-                            ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/40'
-                            : 'hover:bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border-transparent'
+                            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-400 font-bold'
+                            : 'hover:bg-neutral-900/60 text-neutral-300 hover:text-white border-transparent'
                         }`}
                       >
                         <div className="flex items-center space-x-2 truncate">
-                          <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} className="w-3 h-3 text-neutral-600 shrink-0" />
-                          <Icon name={isExpanded ? 'folderOpen' : 'folder'} className="w-3.5 h-3.5 text-emerald-500/80 shrink-0" />
-                          <span className="font-semibold truncate">{week.name}</span>
+                          <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} className="w-3 h-3 text-neutral-400 shrink-0" />
+                          <Icon name={isExpanded ? 'folderOpen' : 'folder'} className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span className="font-bold truncate">{week.name}</span>
                         </div>
-                        <span className="text-[10px] text-neutral-600 font-mono">
+                        <span className="text-[10px] text-zinc-200 bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded font-bold font-mono">
                           {week.files.length + (week.readmeContent ? 1 : 0)}f
                         </span>
                       </button>
 
                       {isExpanded && (
-                        <div className="ml-3 pl-3 border-l border-neutral-800/80 mt-1 space-y-2">
+                        <div className="ml-3 pl-3 border-l border-neutral-700 mt-1 space-y-2">
                           {week.readmeContent && (
                             <button
                               onClick={() => onSelectFile(week.name, 'README.md')}
                               className={`flex items-center space-x-2 w-full p-1 rounded text-left text-xs font-mono transition cursor-pointer ${
                                 activeFileName === 'README.md' && isSelected
-                                  ? 'text-amber-400 bg-neutral-900/80 font-bold'
-                                  : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                                  ? 'text-amber-300 bg-neutral-900/90 font-extrabold border border-amber-500/30'
+                                  : 'hover:bg-neutral-900/55 text-neutral-300 hover:text-white'
                               }`}
                             >
-                              <Icon name="fileText" className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
+                              <Icon name="fileText" className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                               <span className="truncate">README.md</span>
-                              <span className="text-[9px] hc-small font-mono leading-none shrink-0 ml-auto">tasks</span>
+                              <span className="text-[9px] text-amber-300 font-extrabold bg-amber-500/10 border border-amber-500/20 px-1 py-0.5 rounded leading-none shrink-0 ml-auto">tasks</span>
                             </button>
                           )}
 
                           {week.questions.length > 0 && (
-                            <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
-                              <span className="text-[9px] hc-small tracking-widest block pl-1 uppercase font-mono">Lab Tasks</span>
+                            <div className="space-y-1.5 pt-1 border-t border-neutral-800">
+                              <span className="text-[10px] text-neutral-200 font-extrabold tracking-wider block pl-1 uppercase font-mono">Lab Tasks</span>
                               {week.questions.map(q => {
                                 const isActive = activeQuestionId === q.id && isSelected;
                                 return (
                                   <button
                                     key={q.id}
                                     onClick={() => onSelectQuestion(week.name, q.id)}
-                                    className={`flex items-start space-x-2 w-full p-1 rounded text-left text-xs transition cursor-pointer ${
+                                    className={`flex items-start space-x-2 w-full p-1.5 rounded text-left text-xs transition cursor-pointer ${
                                       isActive
-                                        ? 'bg-emerald-500/5 text-emerald-400 border border-emerald-500/20 font-medium'
-                                        : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                                        ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-400/50 font-bold'
+                                        : 'hover:bg-neutral-900/55 text-neutral-300 hover:text-white'
                                     }`}
                                   >
-                                    <Icon name="sparkles" className={`w-3 h-3 shrink-0 mt-0.5 ${isActive ? 'text-emerald-400' : 'text-neutral-700'}`} />
-                                    <span className="font-sans line-clamp-2 leading-snug">{q.text}</span>
+                                    <Icon name="sparkles" className={`w-3 h-3 shrink-0 mt-0.5 ${isActive ? 'text-emerald-400 animate-pulse' : 'text-neutral-500'}`} />
+                                    <span className="font-sans line-clamp-3 leading-snug">{q.text}</span>
                                   </button>
                                 );
                               })}
@@ -413,8 +398,8 @@
                           )}
 
                           {week.files.length > 0 && (
-                            <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
-                              <span className="text-[9px] hc-small tracking-widest block pl-1 uppercase font-mono">Source Files</span>
+                            <div className="space-y-1.5 pt-1 border-t border-neutral-800">
+                              <span className="text-[10px] text-neutral-200 font-extrabold tracking-wider block pl-1 uppercase font-mono">Source Files</span>
                               {week.files.map(file => {
                                 const isActive = activeFileName === file.name && isSelected;
                                 return (
@@ -423,13 +408,13 @@
                                     onClick={() => onSelectFile(week.name, file.name)}
                                     className={`flex items-center space-x-2 w-full p-1 rounded text-left text-xs font-mono transition cursor-pointer ${
                                       isActive
-                                        ? 'text-emerald-400 bg-neutral-900/80 font-bold'
-                                        : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                                        ? 'text-emerald-300 bg-neutral-900/95 font-extrabold border border-emerald-500/40'
+                                        : 'hover:bg-neutral-900/55 text-neutral-300 hover:text-white'
                                     }`}
                                   >
-                                    <Icon name="fileCode" className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-600'}`} />
+                                    <Icon name="fileCode" className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
                                     <span className="truncate">{file.name}</span>
-                                    <span className="text-[9px] hc-small leading-none ml-auto shrink-0 font-mono">
+                                    <span className="text-[9px] text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20 px-1 rounded leading-none ml-auto shrink-0 font-mono">
                                       {(file.size / 1024).toFixed(1)}k
                                     </span>
                                   </button>
@@ -445,18 +430,18 @@
               )}
             </div>
 
-            <div className="mt-auto pt-4 border-t border-neutral-800/60 font-mono text-[10px] text-neutral-600 space-y-1 select-none shrink-0">
-              <div className="flex justify-between">
-                <span className="hc-label">WEEKS LOADED:</span>
-                <span className="hc-value">{weeks.length}</span>
+            <div className="mt-auto pt-4 border-t border-neutral-800 font-mono text-[11px] text-neutral-300 space-y-2 select-none shrink-0">
+              <div className="flex justify-between items-center">
+                <span className="font-extrabold">WEEKS LOADED:</span>
+                <span className="text-emerald-400 font-black bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/25">{weeks.length}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="hc-label">TOTAL QUESTIONS:</span>
-                <span className="hc-value">{weeks.reduce((acc, w) => acc + w.questions.length, 0)}</span>
+              <div className="flex justify-between items-center">
+                <span className="font-extrabold">TOTAL QUESTIONS:</span>
+                <span className="text-white font-black bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">{weeks.reduce((acc, w) => acc + w.questions.length, 0)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="hc-label">C ANSWER FILES:</span>
-                <span className="hc-value">{weeks.reduce((acc, w) => acc + w.files.length, 0)}</span>
+              <div className="flex justify-between items-center">
+                <span className="font-extrabold">C ANSWER FILES:</span>
+                <span className="text-white font-black bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">{weeks.reduce((acc, w) => acc + w.files.length, 0)}</span>
               </div>
             </div>
           </div>
@@ -502,14 +487,14 @@
           <div className="bg-[#050505] flex-1 flex flex-col h-full overflow-hidden">
             {question && (
               <div className="p-8 bg-[#0a0a0a] border-b border-neutral-800 text-left select-text shrink-0 animate-fade-in">
-                <div className="text-[10px] text-emerald-500 mb-2 font-mono uppercase tracking-[0.2em] font-bold">
+                <div className="text-[10px] text-emerald-400 mb-2 font-mono uppercase tracking-[0.2em] font-bold">
                   QUESTION CONTEXT {weekName ? `— ${weekName}` : ''}
                 </div>
                 <h2 className="text-lg md:text-xl font-medium text-white leading-snug">
                   {question.text}
                 </h2>
                 {fileName && (
-                  <p className="mt-3 text-xs text-neutral-500 font-mono leading-relaxed max-w-2xl">
+                  <p className="mt-3 text-xs text-neutral-300 font-mono leading-relaxed max-w-2xl">
                     Suggested implementation filename:{' '}
                     <span className="text-emerald-400 bg-emerald-500/5 px-2 py-0.5 border border-emerald-500/20 rounded">
                       {fileName}
@@ -522,11 +507,11 @@
             <div className="h-10 border-b border-neutral-800 flex bg-[#0d0d0d] select-none shrink-0 items-center justify-between px-4">
               <div className="flex h-full">
                 <div className="px-4 h-full border-r border-neutral-800 bg-[#050505] flex items-center gap-2 text-[11px] text-emerald-400 font-mono font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span>{fileName || 'editor.c'}</span>
                 </div>
               </div>
-              <div className="text-[10px] text-neutral-600 font-mono uppercase tracking-[0.1em] font-bold">
+              <div className="text-[11px] text-neutral-300 font-mono uppercase tracking-[0.1em] font-extrabold">
                 C-Viewer Workspace
               </div>
             </div>
@@ -535,34 +520,34 @@
               {loading ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-[#050505]">
                   <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-neutral-500 font-mono text-xs">accessing repository...</span>
+                  <span className="text-neutral-300 font-bold font-mono text-xs">accessing repository...</span>
                 </div>
               ) : code ? (
                 <div className="flex min-h-full py-4 text-left select-text">
-                  <div className="w-12 select-none text-right pr-4 text-neutral-700 border-r border-neutral-900 font-mono">
+                  <div className="w-12 select-none text-right pr-4 text-neutral-400 border-r border-neutral-800 font-mono font-bold">
                     {lines.map((_, i) => (
                       <div key={i} className="h-5 leading-5 text-xs">{i + 1}</div>
                     ))}
                   </div>
-                  <pre className="flex-1 pl-4 pr-6 overflow-x-auto font-mono text-zinc-300 leading-5">
+                  <pre className="flex-1 pl-4 pr-6 overflow-x-auto font-mono text-zinc-100 leading-5">
                     <code className="block font-mono text-xs md:text-sm whitespace-pre" dangerouslySetInnerHTML={{ __html: highlighted }} />
                   </pre>
                 </div>
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#050505]">
                   <div className="max-w-md flex flex-col items-center space-y-4">
-                    <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-full text-neutral-500">
-                      <Icon name="fileText" className="w-8 h-8 text-neutral-600" />
+                    <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-full text-neutral-300">
+                      <Icon name="fileText" className="w-8 h-8 text-neutral-300" />
                     </div>
                     <div>
-                      <h4 className="text-neutral-400 font-bold font-mono text-xs uppercase tracking-widest">No file selected</h4>
-                      <p className="text-neutral-500 text-xs mt-2 leading-relaxed px-4 font-sans">
+                      <h4 className="text-neutral-200 font-extrabold font-mono text-xs uppercase tracking-widest">No file selected</h4>
+                      <p className="text-neutral-300 text-xs mt-2 leading-relaxed px-4 font-sans">
                         Select a lab task question or C program file from the left sidebar, or type standard command in terminal like:
                       </p>
                       <div className="bg-neutral-950 rounded border border-neutral-800 p-3 mt-4 text-left font-mono text-emerald-400 text-xs">
-                        <span className="text-neutral-600">guest@eeyel-dsa:~$</span> cd "Week 1"
+                        <span className="text-neutral-400">guest@eeyel-dsa:~$</span> cd "Week 1"
                         <br />
-                        <span className="text-neutral-600">guest@eeyel-dsa:/Week 1$</span> cat stack.c
+                        <span className="text-neutral-400">guest@eeyel-dsa:/Week 1$</span> cat stack.c
                       </div>
                     </div>
                   </div>
@@ -574,22 +559,22 @@
               <div className="flex gap-4">
                 {code && !loading && (
                   <>
-                    <button onClick={handleCopy} className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                    <button onClick={handleCopy} className="text-xs text-neutral-200 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-extrabold">
                       <Icon name={copied ? 'check' : 'copy'} className="w-3.5 h-3.5" />
                       <span>{copied ? '[copied]' : '[copy]'}</span>
                     </button>
-                    <button onClick={handleDownload} className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                    <button onClick={handleDownload} className="text-xs text-neutral-200 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-extrabold">
                       <Icon name="download" className="w-3.5 h-3.5" />
                       <span>[download]</span>
                     </button>
-                    <a href={githubFileUrl} target="_blank" referrerPolicy="no-referrer" className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                    <a href={githubFileUrl} target="_blank" referrerPolicy="no-referrer" className="text-xs text-neutral-200 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-extrabold">
                       <Icon name="externalLink" className="w-3.5 h-3.5" />
                       <span>[github]</span>
                     </a>
                   </>
                 )}
               </div>
-              <div className="text-[10px] text-neutral-600 uppercase font-bold tracking-wider">
+              <div className="text-[11px] text-neutral-300 uppercase font-extrabold tracking-wider">
                 {lines.length > 0 ? `Ln ${lines.length}, Col 1 — UTF-8 — C-Source` : 'No file open'}
               </div>
             </div>
@@ -778,29 +763,29 @@
         };
 
         return (
-          <div onClick={focusInput} className="bg-neutral-950 border border-neutral-900 rounded-lg p-4 font-mono text-xs text-neutral-300 min-h-[160px] max-h-[220px] overflow-y-auto flex flex-col cursor-text relative select-text">
+          <div onClick={focusInput} className="bg-neutral-950 border border-neutral-900 rounded-lg p-4 font-mono text-xs text-neutral-200 min-h-[160px] max-h-[220px] overflow-y-auto flex flex-col cursor-text relative select-text">
             <div className="flex items-center justify-between border-b border-neutral-900/80 pb-2 mb-3 sticky top-0 bg-neutral-950 z-10 select-none">
               <div className="flex items-center space-x-2">
                 <Icon name="terminal" className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-neutral-500 text-xs font-semibold">guest@eeyel-dsa: ~/cli_fetcher</span>
+                <span className="text-neutral-300 text-xs font-bold">guest@eeyel-dsa: ~/cli_fetcher</span>
               </div>
-              <span className="text-[10px] text-neutral-600 font-bold uppercase tracking-wider font-mono">CLI PANEL</span>
+              <span className="text-[10px] text-neutral-300 font-extrabold uppercase tracking-wider font-mono">CLI PANEL</span>
             </div>
 
             <div className="flex-1 flex flex-col space-y-1">
               {history.map(line => (
                 <div key={line.id} className="whitespace-pre-wrap leading-relaxed">
-                  {line.type === 'input' && <span className="text-neutral-500">{line.text}</span>}
-                  {line.type === 'output' && <span className="text-neutral-400">{line.text}</span>}
-                  {line.type === 'error' && <span className="text-rose-400/90 font-medium">⚠️ {line.text}</span>}
-                  {line.type === 'success' && <span className="text-emerald-400/90 font-medium">✓ {line.text}</span>}
+                  {line.type === 'input' && <span className="text-neutral-300 font-semibold">{line.text}</span>}
+                  {line.type === 'output' && <span className="text-zinc-100">{line.text}</span>}
+                  {line.type === 'error' && <span className="text-rose-400 font-extrabold">⚠️ {line.text}</span>}
+                  {line.type === 'success' && <span className="text-emerald-400 font-bold">✓ {line.text}</span>}
                 </div>
               ))}
               <div ref={terminalEndRef} />
             </div>
 
             <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-neutral-900/60 select-none">
-              <span className="text-emerald-500 font-bold whitespace-nowrap">
+              <span className="text-emerald-400 font-extrabold whitespace-nowrap">
                 guest@eeyel-dsa:{currentWeek ? `/${currentWeek.name}` : '/'}$
               </span>
               <input
@@ -934,7 +919,7 @@
           }
         };
 
-        useEffect(() => { fetchRepositoryStructure(repo); }, [repo]);
+        useEffect(() => { fetchRepositoryStructure(repo, true); }, [repo]);
 
         const handleSelectWeek = (weekName) => {
           const found = weeks.find(w => w.name === weekName);
@@ -1048,7 +1033,7 @@
         }, [terminalTrigger]);
 
         return (
-          <div className="h-screen w-full bg-[#0a0a0a] text-neutral-300 font-mono flex flex-col overflow-hidden select-none relative">
+          <div className="h-screen w-full bg-[#0a0a0a] text-neutral-200 font-mono flex flex-col overflow-hidden select-none relative">
             <header className="h-12 border-b border-neutral-800 bg-[#111] flex items-center justify-between px-4 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="flex gap-1.5">
@@ -1057,21 +1042,21 @@
                   <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40"></div>
                 </div>
                 <div className="h-4 w-[1px] bg-neutral-800 mx-2"></div>
-                <span className="text-xs text-neutral-400 font-semibold font-mono">eeyel-dsa-cli — explorer</span>
-                <button onClick={() => setShowConfig(!showConfig)} className="text-[11px] text-zinc-500 hover:text-emerald-400 font-mono transition-colors ml-4 flex items-center gap-1 cursor-pointer">
+                <span className="text-xs text-white font-mono font-black tracking-wider uppercase">eeyel-dsa-cli — explorer</span>
+                <button onClick={() => setShowConfig(!showConfig)} className="text-[11px] text-neutral-300 hover:text-emerald-400 font-mono font-bold transition-colors ml-4 flex items-center gap-1 cursor-pointer bg-neutral-800/60 px-2 py-0.5 rounded border border-neutral-700">
                   <Icon name="sliders" className="w-3 h-3" />
                   <span>[config]</span>
                 </button>
               </div>
-              <div className="flex items-center gap-6 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase font-mono">
-                <span className="hover:text-emerald-400 cursor-pointer transition-colors" onClick={() => setShowConfig(!showConfig)}>
-                  Repo: {repo}
+              <div className="flex items-center gap-6 text-[11px] font-bold tracking-wider text-neutral-200 uppercase font-mono">
+                <span className="hover:text-emerald-400 cursor-pointer transition-colors bg-neutral-800/40 border border-neutral-700/60 px-2 py-1 rounded" onClick={() => setShowConfig(!showConfig)}>
+                  Repo: <span className="text-white font-black">{repo}</span>
                 </span>
-                <button onClick={() => fetchRepositoryStructure(repo, true)} disabled={loadingRepo} className="text-[11px] text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50">
-                  <Icon name="refreshCw" className={`w-3 h-3 ${loadingRepo ? 'animate-spin' : ''}`} />
+                <button onClick={() => fetchRepositoryStructure(repo, true)} disabled={loadingRepo} className="text-[11px] text-white hover:text-emerald-400 font-extrabold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50 bg-neutral-800/60 border border-neutral-700 px-2 py-1 rounded">
+                  <Icon name="refreshCw" className={`w-3.5 h-3.5 ${loadingRepo ? 'animate-spin' : ''}`} />
                   <span>[sync]</span>
                 </button>
-                <div className="bg-neutral-800 h-6 px-3 flex items-center rounded text-neutral-400 font-bold">
+                <div className="bg-emerald-950/40 border border-emerald-500/30 h-6 px-3 flex items-center rounded text-emerald-400 font-extrabold text-[10px]">
                   {dataSource}
                 </div>
               </div>
@@ -1085,21 +1070,21 @@
                       <label className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block mb-1.5 font-sans">
                         Integrate Your Github Repository
                       </label>
-                      <p className="text-xs text-zinc-500 mb-3 font-sans">
+                      <p className="text-xs text-zinc-300 mb-3 font-sans">
                         Change the input below to render laboratory files from any custom GitHub repository that conforms to the Week structure.
                       </p>
                       <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-xs text-zinc-600 font-mono">https://github.com/</span>
+                        <span className="absolute left-3 top-2.5 text-xs text-zinc-400 font-mono">https://github.com/</span>
                         <input
                           type="text"
                           value={customRepo}
                           onChange={(e) => setCustomRepo(e.target.value)}
                           placeholder="username/repository"
-                          className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 pl-[135px] text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                          className="w-full bg-neutral-950 border border-neutral-850 rounded px-3 py-2 pl-[160px] text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                         />
                       </div>
                     </div>
-                    <button type="submit" className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs py-2 px-4 rounded transition h-[34px] flex items-center justify-center space-x-1 cursor-pointer">
+                    <button type="submit" className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-semibold text-xs py-2 px-4 rounded transition h-[34px] flex items-center justify-center space-x-1 cursor-pointer">
                       <Icon name="check" className="w-3.5 h-3.5" />
                       <span>Update Target</span>
                     </button>
