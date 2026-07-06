@@ -11,5 +11,13 @@
 
 ### USE THE IN BUILT FILE VIEWWER ADJUSTED TO VIEW, COPY OR DOWNLOAD THE PROGRAM FILES WITHIN YOUR BROWSER IN AN INTERACTIVE WAY:
 
-# [soorzj.github.io/EEYEL-DSA](https://soorzj.github.io/EEYEL-DSA/)
 
+
+<p align="center">
+<a href="https://soorzj.github.io/EEYEL-DSA/">
+  <img
+    src="https://img.shields.io/badge/soorzj.github.io-EEYEL--DSA-green"
+    alt="Website"
+    width="70%"
+  />
+</a>
