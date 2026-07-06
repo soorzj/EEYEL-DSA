@@ -85,6 +85,8 @@ int main()
 	printf("1.Enqueue\n2.Dequeue\n3.See First Memeber\n4.See the queue\n5.Exit\n");
 	while (choice !=5)
 		{
+		printf("Current queue:\n");
+		print_queue();
 		printf("Enter Your choice:\n");
 		scanf("%d", &choice);
 		switch (choice)
@@ -94,6 +96,7 @@ int main()
 			int val;
 			scanf("%d", &val);
 			enqueue(val);
+			
 			break;
 		case 2:
 		{
