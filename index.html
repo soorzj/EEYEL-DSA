@@ -1,932 +1,1157 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EEYEL-DSA Explorer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:        #0d0f14;
-      --surface:   #131720;
-      --card:      #181d28;
-      --border:    #232a3a;
-      --border2:   #2e3850;
-      --accent:    #4ade80;       /* terminal green — the signature */
-      --accent2:   #22d3ee;       /* cyan for secondary highlights */
-      --muted:     #4a5568;
-      --text:      #c9d1e0;
-      --text-dim:  #7a8599;
-      --text-bright: #eef2ff;
-      --danger:    #f87171;
-      --warn:      #fbbf24;
-      --mono:      'JetBrains Mono', monospace;
-      --sans:      'Inter', sans-serif;
-      --radius:    6px;
-      --gutter:    24px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 14px;
-      line-height: 1.6;
-      min-height: 100vh;
-    }
-
-    /* ─── SCANLINE OVERLAY (subtle texture — the aesthetic risk) ─── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.04) 3px,
-        rgba(0,0,0,0.04) 4px
-      );
-      z-index: 9999;
-    }
-
-    /* ─── LAYOUT ─── */
-    .shell {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      grid-template-rows: auto 1fr;
-      min-height: 100vh;
-    }
-
-    /* ─── TOPBAR ─── */
-    .topbar {
-      grid-column: 1 / -1;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 var(--gutter);
-      height: 52px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .topbar-dots {
-      display: flex;
-      gap: 6px;
-    }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-    }
-    .dot-r { background: #ff5f57; }
-    .dot-y { background: #ffbd2e; }
-    .dot-g { background: #28ca42; }
-
-    .topbar-title {
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--text-dim);
-      letter-spacing: 0.04em;
-    }
-    .topbar-title span { color: var(--accent); }
-
-    .topbar-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .badge {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 3px;
-      border: 1px solid var(--border2);
-      color: var(--text-dim);
-    }
-    .badge-green { border-color: var(--accent); color: var(--accent); }
-
-    /* ─── SIDEBAR ─── */
-    .sidebar {
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 20px 0;
-      overflow-y: auto;
-      position: sticky;
-      top: 52px;
-      height: calc(100vh - 52px);
-    }
-
-    .sidebar-section {
-      padding: 0 16px 8px;
-    }
-    .sidebar-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      text-transform: uppercase;
-      padding: 8px 4px 6px;
-      display: block;
-    }
-
-    .week-btn {
-      width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      color: var(--text-dim);
-      font-family: var(--mono);
-      font-size: 13px;
-      padding: 8px 10px;
-      cursor: pointer;
-      border-radius: var(--radius);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background 0.15s, color 0.15s;
-      position: relative;
-    }
-    .week-btn:hover {
-      background: var(--card);
-      color: var(--text);
-    }
-    .week-btn.active {
-      background: rgba(74,222,128,0.08);
-      color: var(--accent);
-    }
-    .week-btn.active::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 6px;
-      bottom: 6px;
-      width: 2px;
-      background: var(--accent);
-      border-radius: 2px;
-    }
-    .week-icon {
-      font-size: 11px;
-      opacity: 0.5;
-    }
-    .week-badge {
-      margin-left: auto;
-      font-size: 10px;
-      padding: 1px 6px;
-      background: var(--card);
-      border-radius: 3px;
-      color: var(--muted);
-    }
-    .week-btn.active .week-badge {
-      background: rgba(74,222,128,0.15);
-      color: var(--accent);
-    }
-
-    .sidebar-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 8px 16px;
-    }
-
-    .sidebar-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      margin: 0 16px;
-      border-radius: var(--radius);
-      color: var(--text-dim);
-      font-size: 12px;
-      text-decoration: none;
-      transition: background 0.15s, color 0.15s;
-    }
-    .sidebar-link:hover {
-      background: var(--card);
-      color: var(--text);
-    }
-
-    /* ─── MAIN CONTENT ─── */
-    .main {
-      overflow-y: auto;
-      padding: var(--gutter);
-      min-height: calc(100vh - 52px);
-    }
-
-    /* ─── WELCOME SCREEN ─── */
-    .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 60vh;
-      text-align: center;
-      gap: 20px;
-    }
-    .welcome-ascii {
-      font-family: var(--mono);
-      font-size: 11px;
-      line-height: 1.4;
-      color: var(--accent);
-      opacity: 0.7;
-      letter-spacing: 0.05em;
-    }
-    .welcome h1 {
-      font-family: var(--mono);
-      font-size: 22px;
-      color: var(--text-bright);
-      font-weight: 500;
-    }
-    .welcome h1 span { color: var(--accent); }
-    .welcome p {
-      color: var(--text-dim);
-      max-width: 440px;
-      font-size: 13px;
-      line-height: 1.7;
-    }
-    .welcome-prompt {
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--accent2);
-      margin-top: 8px;
-    }
-    .cursor {
-      display: inline-block;
-      width: 8px;
-      height: 14px;
-      background: var(--accent2);
-      vertical-align: middle;
-      animation: blink 1s step-end infinite;
-      margin-left: 2px;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-    /* ─── LOADING ─── */
-    .loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 40vh;
-      gap: 16px;
-    }
-    .spinner {
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--accent);
-    }
-    .progress-bar {
-      width: 200px;
-      height: 2px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      animation: progress 1.5s ease-in-out infinite;
-      transform-origin: left;
-    }
-    @keyframes progress {
-      0%   { transform: scaleX(0); margin-left: 0; }
-      50%  { transform: scaleX(0.6); }
-      100% { transform: scaleX(0); margin-left: 100%; }
-    }
-
-    /* ─── WEEK HEADER ─── */
-    .week-header {
-      margin-bottom: 24px;
-    }
-    .breadcrumb {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .breadcrumb-sep { color: var(--muted); }
-    .breadcrumb-current { color: var(--accent); }
-    .week-title {
-      font-family: var(--mono);
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text-bright);
-    }
-    .week-title span { color: var(--accent); }
-    .week-meta {
-      display: flex;
-      gap: 12px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-    .meta-pill {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .meta-pill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    /* ─── QUESTIONS LIST ─── */
-    .questions-grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .question-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      transition: border-color 0.15s;
-    }
-    .question-card:hover {
-      border-color: var(--border2);
-    }
-    .question-card.expanded {
-      border-color: rgba(74,222,128,0.3);
-    }
-
-    .question-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.1s;
-    }
-    .question-header:hover {
-      background: rgba(255,255,255,0.02);
-    }
-    .q-number {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      min-width: 26px;
-    }
-    .q-title {
-      flex: 1;
-      font-size: 13px;
-      color: var(--text);
-      font-weight: 500;
-      line-height: 1.5;
-    }
-    .q-expand {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--muted);
-      transition: transform 0.2s, color 0.2s;
-    }
-    .question-card.expanded .q-expand {
-      transform: rotate(90deg);
-      color: var(--accent);
-    }
-    .q-lang {
-      font-family: var(--mono);
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 3px;
-      background: rgba(74,222,128,0.08);
-      color: var(--accent);
-      border: 1px solid rgba(74,222,128,0.2);
-    }
-
-    /* ─── CODE PANEL ─── */
-    .code-panel {
-      display: none;
-      border-top: 1px solid var(--border);
-    }
-    .question-card.expanded .code-panel {
-      display: block;
-    }
-
-    .code-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 18px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-    .code-filename {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--accent2);
-      flex: 1;
-    }
-    .code-filename::before {
-      content: '📄 ';
-      font-size: 10px;
-    }
-    .copy-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .copy-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .copy-btn.copied {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(74,222,128,0.08);
-    }
-
-    .code-loading {
-      padding: 24px 18px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text-dim);
-    }
-    .code-error {
-      padding: 24px 18px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--danger);
-    }
-
-    .code-wrapper {
-      position: relative;
-      overflow: auto;
-      max-height: 520px;
-    }
-    pre {
-      margin: 0;
-      padding: 20px 18px 20px 0;
-      counter-reset: line;
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-    pre code {
-      display: block;
-    }
-    .line {
-      display: flex;
-    }
-    .line-num {
-      min-width: 48px;
-      padding: 0 16px 0 18px;
-      text-align: right;
-      color: var(--muted);
-      user-select: none;
-      font-size: 11px;
-      opacity: 0.5;
-      flex-shrink: 0;
-    }
-    .line-content {
-      flex: 1;
-      white-space: pre;
-      padding-right: 18px;
-    }
-
-    /* ─── C syntax highlighting ─── */
-    .kw { color: #c084fc; }   /* keywords */
-    .ty { color: #60a5fa; }   /* types */
-    .fn { color: #4ade80; }   /* functions */
-    .str { color: #fbbf24; }  /* strings */
-    .num { color: #f9a8d4; }  /* numbers */
-    .cm { color: #4a5568; font-style: italic; }  /* comments */
-    .pp { color: #22d3ee; }   /* preprocessor */
-    .op { color: #94a3b8; }   /* operators */
-    .sc { color: #e879f9; }   /* special chars in strings */
-
-    /* ─── ERROR ─── */
-    .error-box {
-      background: rgba(248,113,113,0.06);
-      border: 1px solid rgba(248,113,113,0.2);
-      border-radius: var(--radius);
-      padding: 20px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--danger);
-    }
-
-    /* ─── NO CONTENT ─── */
-    .no-code {
-      padding: 28px 18px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--text-dim);
-      text-align: center;
-    }
-    .no-code span { color: var(--muted); }
-
-    /* ─── MOBILE ─── */
-    @media (max-width: 700px) {
-      .shell {
-        grid-template-columns: 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EEYEL-DSA Code Fetcher & Explorer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+            }
+          }
+        }
       }
-      .sidebar {
-        position: static;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        overflow-x: auto;
-        padding: 10px 12px;
-        gap: 6px;
+    </script>
+    
+    <!-- React and ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel Compiler for Standalone HTML Execution -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      /* Smooth custom scrolls */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
       }
-      .sidebar-section { padding: 0; }
-      .sidebar-label { display: none; }
-      .sidebar-divider { display: none; }
-      .sidebar-link { display: none; }
-      .week-btn {
-        white-space: nowrap;
-        padding: 6px 12px;
-        font-size: 12px;
+      ::-webkit-scrollbar-track {
+        background: transparent;
       }
-      .week-badge { display: none; }
-      .main { padding: 16px; }
-    }
-  </style>
-</head>
-<body>
+      ::-webkit-scrollbar-thumb {
+        background: #262626;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #404040;
+      }
+      body {
+        background-color: #0a0a0a;
+        color: #d4d4d4;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
 
-<div class="shell">
+    <!-- Live React App Standalone Script -->
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
 
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <div class="topbar-dots">
-      <div class="dot dot-r"></div>
-      <div class="dot dot-y"></div>
-      <div class="dot dot-g"></div>
-    </div>
-    <span class="topbar-title">~/EEYEL-DSA — <span>soorzj</span>/EEYEL-DSA</span>
-    <div class="topbar-right">
-      <span class="badge badge-green">● live</span>
-      <span class="badge">C lang</span>
-    </div>
-  </header>
+      // Custom SVG Icons
+      function Icon({ name, className = "w-4 h-4" }) {
+        const icons = {
+          folder: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+          ),
+          folderOpen: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2h-3.586a1 1 0 01-.707-.293L11 5.414A1 1 0 0010.293 5H8z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2 10h20" />
+            </svg>
+          ),
+          fileCode: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          ),
+          fileText: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          ),
+          chevronDown: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          ),
+          chevronRight: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          ),
+          sparkles: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          ),
+          sliders: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          ),
+          check: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          ),
+          copy: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+          ),
+          download: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          ),
+          externalLink: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          ),
+          globe: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+            </svg>
+          ),
+          database: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+            </svg>
+          ),
+          refreshCw: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15.89M21 20v-5h-.581" />
+            </svg>
+          ),
+          github: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+              <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.24 6.839 9.565.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.008.069-.008 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.197 22 16.375 22 12c0-5.523-4.477-10-10-10z" />
+            </svg>
+          ),
+          code: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          ),
+          terminal: (
+            <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          )
+        };
+        return icons[name] || null;
+      }
 
-  <!-- SIDEBAR -->
-  <nav class="sidebar" id="sidebar">
-    <div class="sidebar-section">
-      <span class="sidebar-label">Weeks</span>
-      <div id="week-list">
-        <!-- populated by JS -->
-        <div style="padding:8px 10px; font-family:var(--mono); font-size:12px; color:var(--muted)">loading…</div>
-      </div>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section">
-      <span class="sidebar-label">Repository</span>
-    </div>
-    <a href="https://github.com/soorzj/EEYEL-DSA" target="_blank" class="sidebar-link">
-      ⎆ View on GitHub
-    </a>
-    <a href="https://github.com/soorzj/EEYEL-DSA/archive/refs/heads/main.zip" class="sidebar-link">
-      ↓ Download ZIP
-    </a>
-  </nav>
+      // Syntax Highlighter Engine for C code
+      function highlightCCode(code) {
+        if (!code) return '';
+        let escaped = code
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
 
-  <!-- MAIN -->
-  <main class="main" id="main">
-    <div class="welcome" id="welcome">
-      <pre class="welcome-ascii">
- ___  ___ _   _ ___ _       ___  ____    _
-| __|| __| |_| | __| |     |   \/ ___|  /_\
-| _| | _|  _ / | _|| |__  | |) \__ \  / _ \
-|___||___|_|_\ |___|____| |___/|___/ /_/ \_\</pre>
-      <h1>EEYEL<span>-DSA</span> Explorer</h1>
-      <p>Data Structures &amp; Algorithms programs for the EL batch of '29 at CET. Browse weekly questions and view the C source code — no GitHub account needed.</p>
-      <div class="welcome-prompt">$ select a week to begin<span class="cursor"></span></div>
-    </div>
-    <div id="content" style="display:none"></div>
-  </main>
+        const placeholders = [];
+        const pattern = /(\/\*[\s\S]*?\*\/)|(\/\/.*)|("(?:\\.|[^"\\])*")|('(?:\\.|[^'\\])*')/g;
+        
+        escaped = escaped.replace(pattern, (match, blockComment, lineComment, str, char) => {
+          const id = `___PLACEHOLDER_${placeholders.length}___`;
+          if (blockComment) {
+            placeholders.push(`<span class="text-zinc-500 italic font-mono">${blockComment}</span>`);
+          } else if (lineComment) {
+            placeholders.push(`<span class="text-zinc-500 italic font-mono">${lineComment}</span>`);
+          } else if (str) {
+            placeholders.push(`<span class="text-amber-200 font-mono">${str}</span>`);
+          } else if (char) {
+            placeholders.push(`<span class="text-amber-300 font-mono">${char}</span>`);
+          }
+          return id;
+        });
 
-</div>
+        escaped = escaped.replace(/(^\s*#\s*\w+)(?:\s*&lt;([^&]+)&gt;)?/gm, (match, directive, header) => {
+          if (header) {
+            return `<span class="text-pink-400 font-semibold">${directive}</span> &lt;<span class="text-emerald-400">${header}</span>&gt;`;
+          }
+          return `<span class="text-pink-400 font-semibold">${directive}</span>`;
+        });
 
-<script>
-const OWNER = 'soorzj';
-const REPO  = 'EEYEL-DSA';
-const API   = 'https://api.github.com';
-const RAW   = 'https://raw.githubusercontent.com';
+        // To protect already generated HTML tags (like <span class="...">) from being matched,
+        // we match and skip any HTML tags: (<[^>]+>)
+        
+        const keywordsRegex = /(<[^>]+>)|(\b(int|char|float|double|void|struct|typedef|union|enum|if|else|while|for|do|return|switch|case|break|continue|default|sizeof|static|const|volatile|extern|register|goto|unsigned|signed|long|short)\b)/g;
+        escaped = escaped.replace(keywordsRegex, (match, tag, keyword) => {
+          return tag ? tag : `<span class="text-blue-400 font-semibold">${keyword}</span>`;
+        });
 
-// ─── CACHE ───────────────────────────────────────────────────
-const cache = {};
+        const stdFuncsRegex = /(<[^>]+>)|(\b(printf|scanf|malloc|calloc|realloc|free|exit|fopen|fclose|fprintf|fscanf|fgets|fputs|strlen|strcpy|strcmp|strcat|main|size_t|NULL|node|Node|stack|Stack|queue|Queue|list|List)\b)/g;
+        escaped = escaped.replace(stdFuncsRegex, (match, tag, func) => {
+          return tag ? tag : `<span class="text-cyan-400">${func}</span>`;
+        });
 
-async function apiFetch(url) {
-  if (cache[url]) return cache[url];
-  const res = await fetch(url, { headers: { Accept: 'application/vnd.github.v3+json' } });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
-  const data = await res.json();
-  cache[url] = data;
-  return data;
-}
+        const numbersRegex = /(<[^>]+>)|(\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?)\b)/g;
+        escaped = escaped.replace(numbersRegex, (match, tag, num) => {
+          return tag ? tag : `<span class="text-purple-400">${num}</span>`;
+        });
 
-async function rawFetch(path) {
-  const url = `${RAW}/${OWNER}/${REPO}/main/${encodeURIComponent(path).replace(/%2F/g,'/').replace(/%20/g,'%20')}`;
-  if (cache[url]) return cache[url];
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Raw ${res.status}`);
-  const text = await res.text();
-  cache[url] = text;
-  return text;
-}
+        const funcCallsRegex = /(<[^>]+>)|(\b([a-zA-Z_]\w*)(?=\s*\())/g;
+        escaped = escaped.replace(funcCallsRegex, (match, tag, name) => {
+          return tag ? tag : `<span class="text-indigo-300">${name}</span>`;
+        });
 
-// ─── SYNTAX HIGHLIGHT (C) ────────────────────────────────────
-function highlightC(code) {
-  const keywords = ['auto','break','case','char','const','continue','default','do','double',
-    'else','enum','extern','float','for','goto','if','inline','int','long','register',
-    'return','short','signed','sizeof','static','struct','switch','typedef','union',
-    'unsigned','void','volatile','while','NULL','true','false'];
-  const types = ['int','char','float','double','void','long','short','unsigned','signed',
-    'struct','union','enum','typedef','bool','size_t','FILE','string'];
+        for (let i = 0; i < placeholders.length; i++) {
+          escaped = escaped.replace(`___PLACEHOLDER_${i}___`, placeholders[i]);
+        }
 
-  const lines = code.split('\n');
-  return lines.map(raw => {
-    let l = raw
-      // escape HTML first
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return escaped;
+      }
 
-    // block comments (simple single-line treatment)
-    l = l.replace(/(\/\/.*$)/gm, '<span class="cm">$1</span>');
+      // Markdown Question Parsing Utility
+      function parseQuestions(markdown, weekName) {
+        if (!markdown) return [];
+        const questions = [];
+        const lines = markdown.split('\n');
+        let index = 1;
 
-    // preprocessor
-    l = l.replace(/^(\s*)(#\w+)/g, '$1<span class="pp">$2</span>');
+        for (const line of lines) {
+          if (line.trim().startsWith('## ')) {
+            const text = line.replace(/^\s*##\s*/, '').trim();
+            let associatedFile = null;
+            const fileRegex = /([a-zA-Z0-9_\-]+\.c)/i;
+            const match = text.match(fileRegex);
+            if (match) {
+              associatedFile = match[1];
+            }
 
-    // strings
-    l = l.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="str">$1</span>');
+            questions.push({
+              id: `${weekName.toLowerCase().replace(/\s+/g, '-')}-q-${index++}`,
+              text,
+              associatedFile,
+              weekName,
+            });
+          }
+        }
+        return questions;
+      }
 
-    // char literals
-    l = l.replace(/('(?:[^'\\]|\\.)+')/g, '<span class="str">$1</span>');
+      // Static dataset fallback for offline access or rate limits
+      const FALLBACK_WEEKS = [
+        {
+          name: 'Week 1',
+          path: 'Week 1',
+          readmeContent: '# TASKS\n## Implement stack data structure as a array in C (`stack.c`)',
+          questions: [
+            {
+              id: 'week-1-q-1',
+              text: 'Implement stack data structure as a array in C (stack.c)',
+              associatedFile: 'stack.c',
+              weekName: 'Week 1',
+            }
+          ],
+          files: [
+            {
+              name: 'stack.c',
+              path: 'Week 1/stack.c',
+              type: 'file',
+              download_url: 'https://raw.githubusercontent.com/soorzj/EEYEL-DSA/main/Week%201/stack.c',
+              sha: '28265846c4e9403b5a47c046d94c9163131b602a',
+              size: 1626,
+            }
+          ],
+        }
+      ];
 
-    // numbers
-    l = l.replace(/\b(\d+\.?\d*[fFuUlL]*)\b/g, '<span class="num">$1</span>');
+      const FALLBACK_FILES = {
+        'Week 1/stack.c': `/*\n * Program to implement stack as an array in C\n * Author: SOORAJ\n * Date: 6-7-26\n * Version: 2\n */\n\n#include <stdio.h>\n\nint MAX = 10;\nint stack[MAX];\nint top = -1;\n\nvoid push(int value);\nint pop(void);\nint peek(void);\nvoid print_stack(void);\nint isEmpty(void);\n\nvoid push(int value) {\n\tif (top == MAX - 1)\n\t\tprintf("Stack Overflow\\n");\n\telse {\n\t\ttop++;\n\t\tstack[top] = value;\n\t}\n}\n\nint pop() {\n\tif (isEmpty() == 1) {\n\t\tprintf("Stack Underflow\\n");\n\t\treturn -1;\n\t} else\n\t\treturn stack[top--];\n}\n\nint peek() {\n\tif (isEmpty() == 1) {\n\t\tprintf("Stack Underflow\\n");\n\t\treturn -1;\n\t} else\n\t\treturn stack[top];\n}\n\nvoid print_stack() {\n\tif (isEmpty() == 1) {\n\t\tprintf("Stack Empty\\n");\n\t\treturn;\n\t}\n\tfor (int i = top; i >= 0; --i)\n\t\tprintf("%d\\n", stack[i]);\n}\n\nint isEmpty() {\n\tif (top == -1)\n\t\treturn 1;\n\telse\n\t\treturn 0;\n}\n\nint main() {\n\tint choice = -1;\n\twhile (choice != 5) {\n\t\tprintf("Menu for stack\\n");\n\t\tprintf("1.Push\\n2.Pop\\n3.Peek\\n4.See all\\n5.Exit\\n");\n\t\tprintf("Enter Your choice:\\n");\n\t\tscanf("%d", &choice);\n\t\tswitch (choice) {\n\t\t\tcase 1:\n\t\t\t\tprintf("Enter element to push to stack:\\n");\n\t\t\t\tint val;\n\t\t\t\tscanf("%d", &val);\n\t\t\t\tpush(val);\n\t\t\t\tbreak;\n\t\t\tcase 2: {\n\t\t\t\tint popped = pop();\n\t\t\t\tif (popped != -1)\n\t\t\t\t\tprintf("Element Popped: %d\\n", popped);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase 3: {\n\t\t\t\tint topmost = peek();\n\t\t\t\tif (topmost != -1)\n\t\t\t\t\tprintf("Topmost Element peeked: %d\\n", topmost);\n\t\t\t\tbreak;\n\t\t\t}\n\t\t\tcase 4:\n\t\t\t\tprintf("Displaying the stack:\\n");\n\t\t\t\tprint_stack();\n\t\t\t\tbreak;\n\t\t\tcase 5:\n\t\t\t\tprintf("Exiting the Program\\n");\n\t\t\t\tbreak;\n\t\t\tdefault:\n\t\t\t\tprintf("Wrong Choice\\n");\n\t\t\t\tbreak;\n\t\t}\n\t}\n}`
+      };
 
-    // keywords
-    const kwPat = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
-    l = l.replace(kwPat, '<span class="kw">$1</span>');
+      // File Tree component
+      function FileTree({ weeks, selectedWeek, onSelectWeek, onSelectFile, onSelectQuestion, activeFileName, activeQuestionId, loading }) {
+        const [expandedWeeks, setExpandedWeeks] = useState({ 'Week 1': true });
+        const [searchQuery, setSearchQuery] = useState('');
 
-    // function calls: word( — not keywords
-    l = l.replace(/\b([a-zA-Z_]\w*)\s*(?=\()/g, (m, name) => {
-      if (keywords.includes(name)) return m;
-      return `<span class="fn">${name}</span>`;
-    });
+        const toggleWeek = (weekName) => {
+          setExpandedWeeks(prev => ({ ...prev, [weekName]: !prev[weekName] }));
+          onSelectWeek(weekName);
+        };
 
-    return l;
-  }).join('\n');
-}
+        const filteredWeeks = weeks.map(w => {
+          const matches = w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            w.questions.some(q => q.text.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            w.files.some(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
+          return matches ? w : null;
+        }).filter(Boolean);
 
-// ─── RENDER CODE ─────────────────────────────────────────────
-function renderCode(rawCode) {
-  const highlighted = highlightC(rawCode);
-  const lines = highlighted.split('\n');
-  const lineHtml = lines.map((ln, i) =>
-    `<div class="line"><span class="line-num">${i+1}</span><span class="line-content">${ln || ' '}</span></div>`
-  ).join('');
-  return `<div class="code-wrapper"><pre><code>${lineHtml}</code></pre></div>`;
-}
+        return (
+          <div className="bg-[#0d0d0d] h-full flex flex-col p-4 select-none">
+            <div className="flex items-center justify-between mb-4 border-b border-neutral-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-emerald-500 font-mono text-xs font-bold">&gt;_</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 font-mono">EXPLORER</span>
+              </div>
+              {loading && (
+                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono px-1.5 py-0.5 rounded animate-pulse">
+                  SYNCING
+                </span>
+              )}
+            </div>
 
-// ─── PARSE README for questions ──────────────────────────────
-function parseReadme(md) {
-  const questions = [];
-  const lines = md.split('\n');
-  let current = null;
-  for (const line of lines) {
-    const m = line.match(/^##\s+(.+)/);
-    if (m) {
-      if (current) questions.push(current);
-      current = { title: m[1].trim(), body: [] };
-    } else if (current) {
-      current.body.push(line);
-    }
-  }
-  if (current) questions.push(current);
-  return questions;
-}
+            <div className="relative mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded font-mono text-xs text-neutral-400">
+                <span className="text-emerald-500 font-bold">$</span>
+                <input
+                  type="text"
+                  placeholder="grep tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent border-none text-zinc-300 focus:outline-none placeholder:text-neutral-700 text-xs"
+                />
+              </div>
+            </div>
 
-// ─── LOAD WEEK LIST ──────────────────────────────────────────
-let weeks = [];
+            <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-600 mb-3 font-bold font-mono pl-1">STRUCTURE</div>
 
-async function loadWeeks() {
-  try {
-    const contents = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents`);
-    weeks = contents
-      .filter(f => f.type === 'dir' && /^week\s*\d+/i.test(f.name))
-      .sort((a,b) => {
-        const na = parseInt(a.name.match(/\d+/)?.[0] || 0);
-        const nb = parseInt(b.name.match(/\d+/)?.[0] || 0);
-        return na - nb;
-      });
-    renderWeekList();
-  } catch(e) {
-    document.getElementById('week-list').innerHTML =
-      `<div style="padding:8px 10px; color:var(--danger); font-family:var(--mono); font-size:11px">Error: ${e.message}</div>`;
-  }
-}
+            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 text-left">
+              {filteredWeeks.length === 0 ? (
+                <div className="text-center py-8 text-neutral-600 text-xs font-mono">no results found</div>
+              ) : (
+                filteredWeeks.map(week => {
+                  const isExpanded = !!expandedWeeks[week.name];
+                  const isSelected = selectedWeek?.name === week.name;
 
-function renderWeekList() {
-  const el = document.getElementById('week-list');
-  if (!weeks.length) {
-    el.innerHTML = `<div style="padding:8px 10px; font-family:var(--mono); font-size:12px; color:var(--muted)">no weeks found</div>`;
-    return;
-  }
-  el.innerHTML = weeks.map((w,i) =>
-    `<button class="week-btn" onclick="selectWeek(${i})" id="wb-${i}">
-      <span class="week-icon">▸</span>
-      ${w.name}
-      <span class="week-badge" id="wbadge-${i}">…</span>
-    </button>`
-  ).join('');
-  // load file counts in background
-  weeks.forEach((w,i) => loadWeekBadge(w,i));
-}
+                  return (
+                    <div key={week.name} className="flex flex-col">
+                      <button
+                        onClick={() => toggleWeek(week.name)}
+                        className={`flex items-center justify-between w-full py-1.5 px-2 rounded-sm text-left transition text-xs font-mono group cursor-pointer border-l ${
+                          isSelected
+                            ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/40'
+                            : 'hover:bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} className="w-3 h-3 text-neutral-600 shrink-0" />
+                          <Icon name={isExpanded ? 'folderOpen' : 'folder'} className="w-3.5 h-3.5 text-emerald-500/80 shrink-0" />
+                          <span className="font-semibold truncate">{week.name}</span>
+                        </div>
+                        <span className="text-[10px] text-neutral-600 font-mono">
+                          {week.files.length + (week.readmeContent ? 1 : 0)}f
+                        </span>
+                      </button>
 
-async function loadWeekBadge(week, idx) {
-  try {
-    const files = await apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(week.name)}`);
-    const cFiles = files.filter(f => f.name.endsWith('.c'));
-    const badge = document.getElementById(`wbadge-${idx}`);
-    if (badge) badge.textContent = `${cFiles.length}q`;
-  } catch(_) {}
-}
+                      {isExpanded && (
+                        <div className="ml-3 pl-3 border-l border-neutral-800/80 mt-1 space-y-2">
+                          {week.readmeContent && (
+                            <button
+                              onClick={() => onSelectFile(week.name, 'README.md')}
+                              className={`flex items-center space-x-2 w-full p-1 rounded text-left text-xs font-mono transition cursor-pointer ${
+                                activeFileName === 'README.md' && isSelected
+                                  ? 'text-amber-400 bg-neutral-900/80 font-bold'
+                                  : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                              }`}
+                            >
+                              <Icon name="fileText" className="w-3.5 h-3.5 text-amber-500/80 shrink-0" />
+                              <span className="truncate">README.md</span>
+                              <span className="text-[9px] text-neutral-600 font-mono leading-none shrink-0 ml-auto">tasks</span>
+                            </button>
+                          )}
 
-// ─── SELECT WEEK ─────────────────────────────────────────────
-let currentWeek = null;
+                          {week.questions.length > 0 && (
+                            <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
+                              <span className="text-[9px] text-neutral-600 font-bold tracking-widest block pl-1 uppercase font-mono">Lab Tasks</span>
+                              {week.questions.map(q => {
+                                const isActive = activeQuestionId === q.id && isSelected;
+                                return (
+                                  <button
+                                    key={q.id}
+                                    onClick={() => onSelectQuestion(week.name, q.id)}
+                                    className={`flex items-start space-x-2 w-full p-1 rounded text-left text-xs transition cursor-pointer ${
+                                      isActive
+                                        ? 'bg-emerald-500/5 text-emerald-400 border border-emerald-500/20 font-medium'
+                                        : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                                    }`}
+                                  >
+                                    <Icon name="sparkles" className={`w-3 h-3 shrink-0 mt-0.5 ${isActive ? 'text-emerald-400' : 'text-neutral-700'}`} />
+                                    <span className="font-sans line-clamp-2 leading-snug">{q.text}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
 
-async function selectWeek(idx) {
-  // Update sidebar active state
-  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`wb-${idx}`)?.classList.add('active');
+                          {week.files.length > 0 && (
+                            <div className="space-y-1.5 pt-1 border-t border-neutral-800/40">
+                              <span className="text-[9px] text-neutral-600 font-bold tracking-widest block pl-1 uppercase font-mono">Source Files</span>
+                              {week.files.map(file => {
+                                const isActive = activeFileName === file.name && isSelected;
+                                return (
+                                  <button
+                                    key={file.path}
+                                    onClick={() => onSelectFile(week.name, file.name)}
+                                    className={`flex items-center space-x-2 w-full p-1 rounded text-left text-xs font-mono transition cursor-pointer ${
+                                      isActive
+                                        ? 'text-emerald-400 bg-neutral-900/80 font-bold'
+                                        : 'hover:bg-neutral-900/30 text-neutral-400 hover:text-neutral-200'
+                                    }`}
+                                  >
+                                    <Icon name="fileCode" className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-600'}`} />
+                                    <span className="truncate">{file.name}</span>
+                                    <span className="text-[9px] text-neutral-700 leading-none ml-auto shrink-0 font-mono">
+                                      {(file.size / 1024).toFixed(1)}k
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
 
-  const week = weeks[idx];
-  currentWeek = week;
-
-  document.getElementById('welcome').style.display = 'none';
-  const content = document.getElementById('content');
-  content.style.display = 'block';
-  content.innerHTML = `<div class="loading"><div class="spinner">$ fetching ${week.name}/...</div><div class="progress-bar"><div class="progress-fill"></div></div></div>`;
-
-  try {
-    // Fetch week folder + README in parallel
-    const [files, readmeMd] = await Promise.all([
-      apiFetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(week.name)}`),
-      rawFetch(`${week.name}/README.md`).catch(() => null)
-    ]);
-
-    const cFiles = files.filter(f => f.name.endsWith('.c'));
-    const questions = readmeMd ? parseReadme(readmeMd) : [];
-
-    renderWeek(week, questions, cFiles);
-  } catch(e) {
-    content.innerHTML = `<div class="error-box">Failed to load ${week.name}: ${e.message}</div>`;
-  }
-}
-
-// ─── RENDER WEEK ─────────────────────────────────────────────
-function renderWeek(week, questions, cFiles) {
-  const content = document.getElementById('content');
-
-  const qCount = Math.max(questions.length, cFiles.length);
-
-  let html = `
-    <div class="week-header">
-      <div class="breadcrumb">
-        <span>EEYEL-DSA</span>
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current">${week.name}</span>
-      </div>
-      <div class="week-title"><span>$</span> ls ${week.name}/</div>
-      <div class="week-meta">
-        <div class="meta-pill"><span class="meta-pill-dot"></span>${qCount} question${qCount!==1?'s':''}</div>
-        <div class="meta-pill">${cFiles.length} .c file${cFiles.length!==1?'s':''}</div>
-        <div class="meta-pill">${questions.length ? 'README ✓' : 'no README'}</div>
-      </div>
-    </div>
-    <div class="questions-grid">`;
-
-  if (qCount === 0) {
-    html += `<div class="no-code">
-      <span>— no questions found in this week yet —</span>
-    </div>`;
-  } else {
-    // Merge questions + files
-    for (let i = 0; i < qCount; i++) {
-      const q = questions[i];
-      const f = cFiles[i];
-      const qTitle = q ? q.title : (f ? f.name.replace('.c','') : `Question ${i+1}`);
-      const fname  = f ? f.name : null;
-
-      html += `
-        <div class="question-card" id="qcard-${i}">
-          <div class="question-header" onclick="toggleQuestion(${i}, '${week.name}', '${fname || ''}')">
-            <span class="q-number">${String(i+1).padStart(2,'0')}.</span>
-            <span class="q-title">${escapeHtml(qTitle)}</span>
-            ${fname ? `<span class="q-lang">C</span>` : '<span class="q-lang" style="opacity:0.4">—</span>'}
-            <span class="q-expand">▶</span>
+            <div className="mt-auto pt-4 border-t border-neutral-800/60 font-mono text-[10px] text-neutral-600 space-y-1 select-none shrink-0">
+              <div className="flex justify-between">
+                <span>WEEKS LOADED:</span>
+                <span className="text-emerald-500 font-bold">{weeks.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>TOTAL QUESTIONS:</span>
+                <span className="text-neutral-400">{weeks.reduce((acc, w) => acc + w.questions.length, 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>C ANSWER FILES:</span>
+                <span className="text-neutral-400">{weeks.reduce((acc, w) => acc + w.files.length, 0)}</span>
+              </div>
+            </div>
           </div>
-          <div class="code-panel" id="cpanel-${i}">
-            <div class="code-loading">$ cat ${fname || '…'}</div>
+        );
+      }
+
+      // Code Viewer Component
+      function CodeViewer({ code, fileName, question, loading, repoUrl, weekName }) {
+        const [copied, setCopied] = useState(false);
+
+        const handleCopy = async () => {
+          if (!code) return;
+          try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } catch (err) {
+            console.error(err);
+          }
+        };
+
+        const handleDownload = () => {
+          if (!code || !fileName) return;
+          const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        };
+
+        const githubFileUrl = fileName && weekName
+          ? `${repoUrl}/blob/main/${encodeURIComponent(weekName)}/${encodeURIComponent(fileName)}`
+          : repoUrl;
+
+        const highlighted = code ? highlightCCode(code) : '';
+        const lines = code ? code.split('\n') : [];
+
+        return (
+          <div className="bg-[#050505] flex-1 flex flex-col h-full overflow-hidden">
+            {question && (
+              <div className="p-8 bg-[#0a0a0a] border-b border-neutral-800 text-left select-text shrink-0 animate-fade-in">
+                <div className="text-[10px] text-emerald-500 mb-2 font-mono uppercase tracking-[0.2em] font-bold">
+                  QUESTION CONTEXT {weekName ? `— ${weekName}` : ''}
+                </div>
+                <h2 className="text-lg md:text-xl font-medium text-white leading-snug">
+                  {question.text}
+                </h2>
+                {fileName && (
+                  <p className="mt-3 text-xs text-neutral-500 font-mono leading-relaxed max-w-2xl">
+                    Suggested implementation filename:{' '}
+                    <span className="text-emerald-400 bg-emerald-500/5 px-2 py-0.5 border border-emerald-500/20 rounded">
+                      {fileName}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="h-10 border-b border-neutral-800 flex bg-[#0d0d0d] select-none shrink-0 items-center justify-between px-4">
+              <div className="flex h-full">
+                <div className="px-4 h-full border-r border-neutral-800 bg-[#050505] flex items-center gap-2 text-[11px] text-emerald-400 font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>{fileName || 'editor.c'}</span>
+                </div>
+              </div>
+              <div className="text-[10px] text-neutral-600 font-mono uppercase tracking-[0.1em] font-bold">
+                C-Viewer Workspace
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto relative font-mono text-xs md:text-sm bg-[#050505]">
+              {loading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-[#050505]">
+                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-neutral-500 font-mono text-xs">accessing repository...</span>
+                </div>
+              ) : code ? (
+                <div className="flex min-h-full py-4 text-left select-text">
+                  <div className="w-12 select-none text-right pr-4 text-neutral-700 border-r border-neutral-900 font-mono">
+                    {lines.map((_, i) => (
+                      <div key={i} className="h-5 leading-5 text-xs">{i + 1}</div>
+                    ))}
+                  </div>
+                  <pre className="flex-1 pl-4 pr-6 overflow-x-auto font-mono text-zinc-300 leading-5">
+                    <code className="block font-mono text-xs md:text-sm whitespace-pre" dangerouslySetInnerHTML={{ __html: highlighted }} />
+                  </pre>
+                </div>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#050505]">
+                  <div className="max-w-md flex flex-col items-center space-y-4">
+                    <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-full text-neutral-500">
+                      <Icon name="fileText" className="w-8 h-8 text-neutral-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-neutral-400 font-bold font-mono text-xs uppercase tracking-widest">No file selected</h4>
+                      <p className="text-neutral-500 text-xs mt-2 leading-relaxed px-4 font-sans">
+                        Select a lab task question or C program file from the left sidebar, or type standard command in terminal like:
+                      </p>
+                      <div className="bg-neutral-950 rounded border border-neutral-800 p-3 mt-4 text-left font-mono text-emerald-400 text-xs">
+                        <span className="text-neutral-600">guest@eeyel-dsa:~$</span> cd "Week 1"
+                        <br />
+                        <span className="text-neutral-600">guest@eeyel-dsa:/Week 1$</span> cat stack.c
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="h-12 border-t border-neutral-800 bg-[#0d0d0d] px-6 flex items-center justify-between select-none shrink-0 font-mono">
+              <div className="flex gap-4">
+                {code && !loading && (
+                  <>
+                    <button onClick={handleCopy} className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                      <Icon name={copied ? 'check' : 'copy'} className="w-3.5 h-3.5" />
+                      <span>{copied ? '[copied]' : '[copy]'}</span>
+                    </button>
+                    <button onClick={handleDownload} className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                      <Icon name="download" className="w-3.5 h-3.5" />
+                      <span>[download]</span>
+                    </button>
+                    <a href={githubFileUrl} target="_blank" referrerPolicy="no-referrer" className="text-xs text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 cursor-pointer font-bold">
+                      <Icon name="externalLink" className="w-3.5 h-3.5" />
+                      <span>[github]</span>
+                    </a>
+                  </>
+                )}
+              </div>
+              <div className="text-[10px] text-neutral-600 uppercase font-bold tracking-wider">
+                {lines.length > 0 ? `Ln ${lines.length}, Col 1 — UTF-8 — C-Source` : 'No file open'}
+              </div>
+            </div>
           </div>
-        </div>`;
-    }
-  }
+        );
+      }
 
-  html += `</div>`;
-  content.innerHTML = html;
-}
+      // Terminal Console component
+      function TerminalConsole({ weeks, currentWeek, onSelectWeek, onSelectFile, onSelectQuestion, repoName }) {
+        const [input, setInput] = useState('');
+        const [history, setHistory] = useState([
+          { id: '1', type: 'success', text: 'EEYEL-DSA Code Fetcher Terminal Shell [v1.0.0]' },
+          { id: '2', type: 'output', text: `Connected to GitHub Repository: ${repoName}` },
+          { id: '3', type: 'output', text: 'Type "help" to see available terminal commands or navigate using the graphical explorer.' },
+          { id: '4', type: 'output', text: 'Tip: Click folders and files in the sidebar to automatically execute terminal commands!' },
+        ]);
+        const [commandHistory, setCommandHistory] = useState([]);
+        const [historyIndex, setHistoryIndex] = useState(-1);
+        const terminalEndRef = useRef(null);
+        const inputRef = useRef(null);
 
-// ─── TOGGLE QUESTION ─────────────────────────────────────────
-const loadedFiles = {};
+        useEffect(() => {
+          terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, [history]);
 
-async function toggleQuestion(idx, weekName, filename) {
-  const card  = document.getElementById(`qcard-${idx}`);
-  const panel = document.getElementById(`cpanel-${idx}`);
-  const wasOpen = card.classList.contains('expanded');
+        const focusInput = () => inputRef.current?.focus();
+        useEffect(() => { focusInput(); }, []);
 
-  // Close all open
-  document.querySelectorAll('.question-card.expanded').forEach(c => c.classList.remove('expanded'));
+        const addLine = (text, type = 'output') => {
+          setHistory(prev => [...prev, { id: Math.random().toString(), type, text }]);
+        };
 
-  if (wasOpen) return; // toggled closed
+        const handleCommand = (cmdStr) => {
+          const trimmed = cmdStr.trim();
+          if (!trimmed) return;
 
-  card.classList.add('expanded');
+          setCommandHistory(prev => {
+            const updated = [...prev, trimmed];
+            if (updated.length > 50) updated.shift();
+            return updated;
+          });
+          setHistoryIndex(-1);
 
-  if (!filename) {
-    panel.innerHTML = `<div class="no-code"><span>no source file linked to this question</span></div>`;
-    return;
-  }
+          const pathPrompt = currentWeek ? `/${currentWeek.name}` : '/';
+          addLine(`guest@eeyel-dsa:${pathPrompt}$ ${trimmed}`, 'input');
 
-  const key = `${weekName}/${filename}`;
-  if (loadedFiles[key]) {
-    panel.innerHTML = loadedFiles[key];
-    return;
-  }
+          const args = trimmed.split(/\s+/);
+          const command = args[0].toLowerCase();
+          const parameter = args.slice(1).join(' ').replace(/['"]/g, '');
 
-  // Show loading
-  panel.innerHTML = `<div class="code-loading">$ fetching ${filename}…</div>`;
+          switch (command) {
+            case 'help':
+              addLine('Available Commands:', 'success');
+              addLine('  help             - Show this help manual');
+              addLine('  weeks            - List all available laboratory weeks');
+              addLine('  ls               - List files and questions in the current directory');
+              addLine('  cd <week_name>   - Change directory (e.g., cd "Week 1", cd ..)');
+              addLine('  cat <file_name>  - View file content (e.g., cat stack.c, cat README.md)');
+              addLine('  fetch <file_name> - Fetches code and focus viewer');
+              addLine('  info             - Show current repository integration statistics');
+              addLine('  clear            - Clear terminal screen history');
+              break;
+            case 'clear':
+              setHistory([]);
+              break;
+            case 'weeks':
+              addLine('Available directories (Weeks):', 'success');
+              weeks.forEach(w => {
+                addLine(`  📁 ${w.name} (${w.questions.length} questions, ${w.files.length} source files)`);
+              });
+              break;
+            case 'ls':
+              if (!currentWeek) {
+                addLine('Directory of / (root):', 'success');
+                weeks.forEach(w => addLine(`  drwxr-xr-x   [DIR]   ${w.name}`));
+                addLine(`  -rw-r--r--   [FILE]  README.md`);
+              } else {
+                addLine(`Directory of /${currentWeek.name}:`, 'success');
+                addLine(`  drwxr-xr-x   [DIR]   ..`);
+                addLine(`  -rw-r--r--   [FILE]  README.md (Lab Tasks)`);
+                currentWeek.files.forEach(f => addLine(`  -rw-r--r--   [FILE]  ${f.name} (${(f.size / 1024).toFixed(2)} KB)`));
+                if (currentWeek.questions.length > 0) {
+                  addLine('\nLab Questions:', 'success');
+                  currentWeek.questions.forEach((q, idx) => addLine(`  [Q${idx + 1}] ${q.text}`));
+                }
+              }
+              break;
+            case 'cd':
+              if (!parameter || parameter === '/' || parameter === 'root') {
+                onSelectWeek('');
+                addLine('Returned to root directory /');
+              } else if (parameter === '..') {
+                if (currentWeek) {
+                  onSelectWeek('');
+                  addLine('Changed directory to /');
+                } else {
+                  addLine('Already at root directory /', 'error');
+                }
+              } else {
+                const found = weeks.find(w => w.name.toLowerCase() === parameter.toLowerCase() || w.name.toLowerCase().replace(/\s+/g, '') === parameter.toLowerCase().replace(/\s+/g, ''));
+                if (found) {
+                  onSelectWeek(found.name);
+                  addLine(`Changed directory to /${found.name}`);
+                } else {
+                  addLine(`cd: no such file or directory: ${parameter}`, 'error');
+                }
+              }
+              break;
+            case 'cat':
+            case 'fetch':
+              if (!parameter) {
+                addLine(`${command}: missing file operand`, 'error');
+                break;
+              }
+              if (parameter.toLowerCase() === 'readme.md') {
+                if (currentWeek) {
+                  if (currentWeek.readmeContent) {
+                    addLine(`--- README.md for ${currentWeek.name} ---`, 'success');
+                    currentWeek.readmeContent.split('\n').forEach(l => addLine(l));
+                  } else {
+                    addLine('README.md is empty or loading...', 'error');
+                  }
+                } else {
+                  addLine('Root README.md is basic info. Change into a week (e.g. cd "Week 1") to read lab questions.', 'error');
+                }
+                break;
+              }
+              if (!currentWeek) {
+                addLine(`cat: ${parameter}: No such file. Enter folder first (e.g. cd "Week 1")`, 'error');
+              } else {
+                const fileObj = currentWeek.files.find(f => f.name.toLowerCase() === parameter.toLowerCase());
+                if (fileObj) {
+                  addLine(`Fetching ${fileObj.name} from repository...`, 'success');
+                  onSelectFile(currentWeek.name, fileObj.name);
+                } else {
+                  const qMatch = parameter.match(/^q(\d+)$/i);
+                  if (qMatch) {
+                    const qIdx = parseInt(qMatch[1], 10) - 1;
+                    if (qIdx >= 0 && qIdx < currentWeek.questions.length) {
+                      const question = currentWeek.questions[qIdx];
+                      addLine(`Loading Question: ${question.text}`, 'success');
+                      onSelectQuestion(currentWeek.name, question.id);
+                    } else {
+                      addLine(`Question index Q${qMatch[1]} out of bounds.`, 'error');
+                    }
+                  } else {
+                    addLine(`cat: ${parameter}: No such file in this directory.`, 'error');
+                  }
+                }
+              }
+              break;
+            case 'info':
+              addLine('=== REPOSITORY INFORMATION ===', 'success');
+              addLine(`  Target repository : ${repoName}`);
+              addLine(`  Parsed Weeks      : ${weeks.length}`);
+              addLine(`  Integrated GUI    : Yes (Active)`);
+              addLine(`  Environment       : Standalone HTML Page Client`);
+              break;
+            default:
+              addLine(`eeyel-cli: command not found: ${command}. Type "help" for instructions.`, 'error');
+          }
+        };
 
-  try {
-    const raw = await rawFetch(`${weekName}/${filename}`);
-    const toolbar = `
-      <div class="code-toolbar">
-        <span class="code-filename">${weekName}/${filename}</span>
-        <button class="copy-btn" onclick="copyCode('${key}', this)">⎘ copy</button>
-      </div>`;
-    const codeHtml = toolbar + renderCode(raw);
-    loadedFiles[key] = codeHtml;
-    // store raw for copy
-    loadedFiles[key + '__raw'] = raw;
-    panel.innerHTML = codeHtml;
-  } catch(e) {
-    panel.innerHTML = `<div class="code-error">Could not fetch ${filename}: ${e.message}</div>`;
-  }
-}
+        const handleKeyDown = (e) => {
+          if (e.key === 'Enter') {
+            handleCommand(input);
+            setInput('');
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length === 0) return;
+            const nextIdx = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+            setHistoryIndex(nextIdx);
+            setInput(commandHistory[nextIdx]);
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex === -1) return;
+            if (historyIndex === commandHistory.length - 1) {
+              setHistoryIndex(-1);
+              setInput('');
+            } else {
+              const nextIdx = historyIndex + 1;
+              setHistoryIndex(nextIdx);
+              setInput(commandHistory[nextIdx]);
+            }
+          }
+        };
 
-// ─── COPY CODE ───────────────────────────────────────────────
-async function copyCode(key, btn) {
-  const raw = loadedFiles[key + '__raw'];
-  if (!raw) return;
-  try {
-    await navigator.clipboard.writeText(raw);
-    btn.textContent = '✓ copied!';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = '⎘ copy';
-      btn.classList.remove('copied');
-    }, 2000);
-  } catch(_) {}
-}
+        return (
+          <div onClick={focusInput} className="bg-neutral-950 border border-neutral-900 rounded-lg p-4 font-mono text-xs text-neutral-300 min-h-[160px] max-h-[220px] overflow-y-auto flex flex-col cursor-text relative select-text">
+            <div className="flex items-center justify-between border-b border-neutral-900/80 pb-2 mb-3 sticky top-0 bg-neutral-950 z-10 select-none">
+              <div className="flex items-center space-x-2">
+                <Icon name="terminal" className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-neutral-500 text-xs font-semibold">guest@eeyel-dsa: ~/cli_fetcher</span>
+              </div>
+              <span className="text-[10px] text-neutral-600 font-bold uppercase tracking-wider font-mono">CLI PANEL</span>
+            </div>
 
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+            <div className="flex-1 flex flex-col space-y-1">
+              {history.map(line => (
+                <div key={line.id} className="whitespace-pre-wrap leading-relaxed">
+                  {line.type === 'input' && <span className="text-neutral-500">{line.text}</span>}
+                  {line.type === 'output' && <span className="text-neutral-400">{line.text}</span>}
+                  {line.type === 'error' && <span className="text-rose-400/90 font-medium">⚠️ {line.text}</span>}
+                  {line.type === 'success' && <span className="text-emerald-400/90 font-medium">✓ {line.text}</span>}
+                </div>
+              ))}
+              <div ref={terminalEndRef} />
+            </div>
 
-// ─── INIT ─────────────────────────────────────────────────────
-loadWeeks();
-</script>
+            <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-neutral-900/60 select-none">
+              <span className="text-emerald-500 font-bold whitespace-nowrap">
+                guest@eeyel-dsa:{currentWeek ? `/${currentWeek.name}` : '/'}$
+              </span>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 bg-transparent text-white border-none outline-none focus:ring-0 font-mono text-xs caret-emerald-400 min-w-[100px]"
+                placeholder='Type command here (e.g., "help", "ls")...'
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+          </div>
+        );
+      }
 
-</body>
+      // App Main component
+      function App() {
+        const [repo, setRepo] = useState('soorzj/EEYEL-DSA');
+        const [weeks, setWeeks] = useState([]);
+        const [selectedWeek, setSelectedWeek] = useState(null);
+
+        const [activeFileContent, setActiveFileContent] = useState(null);
+        const [activeFileName, setActiveFileName] = useState(null);
+        const [activeQuestion, setActiveQuestion] = useState(null);
+        const [activeQuestionId, setActiveQuestionId] = useState(null);
+
+        const [loadingRepo, setLoadingRepo] = useState(true);
+        const [loadingFile, setLoadingFile] = useState(false);
+        const [dataSource, setDataSource] = useState('API');
+        const [showConfig, setShowConfig] = useState(false);
+        const [customRepo, setCustomRepo] = useState('soorzj/EEYEL-DSA');
+
+        const [terminalTrigger, setTerminalTrigger] = useState(null);
+
+        const fetchRepositoryStructure = async (targetRepo, forceRefresh = false) => {
+          setLoadingRepo(true);
+          
+          if (forceRefresh) {
+            localStorage.removeItem(`cache_weeks_${targetRepo}`);
+            localStorage.removeItem(`cache_source_${targetRepo}`);
+            
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith(`cache_file_${targetRepo}_`)) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+            
+            setSelectedWeek(null);
+            setActiveFileContent(null);
+            setActiveFileName(null);
+            setActiveQuestion(null);
+            setActiveQuestionId(null);
+          }
+
+          try {
+            if (!forceRefresh) {
+              const cachedWeeks = localStorage.getItem(`cache_weeks_${targetRepo}`);
+              if (cachedWeeks) {
+                setWeeks(JSON.parse(cachedWeeks));
+                setDataSource('CACHE');
+                setLoadingRepo(false);
+                return;
+              }
+            }
+
+            const rootRes = await fetch(`https://api.github.com/repos/${targetRepo}/contents`);
+            if (!rootRes.ok) throw new Error(`Status: ${rootRes.status}`);
+
+            const rootData = await rootRes.json();
+            const weekDirs = rootData.filter(item => item.type === 'dir' && item.name.toLowerCase().startsWith('week'));
+
+            if (weekDirs.length === 0) {
+              const alternativeDirs = rootData.filter(item => item.type === 'dir');
+              if (alternativeDirs.length > 0) weekDirs.push(...alternativeDirs);
+            }
+
+            const weeksPayload = await Promise.all(
+              weekDirs.map(async (dir) => {
+                try {
+                  const dirRes = await fetch(`https://api.github.com/repos/${targetRepo}/contents/${encodeURIComponent(dir.name)}`);
+                  if (!dirRes.ok) return { name: dir.name, path: dir.path, questions: [], files: [], readmeContent: null };
+
+                  const dirContents = await dirRes.json();
+                  const cFiles = dirContents.filter(item => item.type === 'file' && item.name.toLowerCase().endsWith('.c'));
+                  const readmeFile = dirContents.find(item => item.type === 'file' && item.name.toLowerCase() === 'readme.md');
+
+                  let readmeContent = null;
+                  let questions = [];
+
+                  if (readmeFile && readmeFile.download_url) {
+                    const readmeRes = await fetch(readmeFile.download_url);
+                    if (readmeRes.ok) {
+                      readmeContent = await readmeRes.text();
+                      questions = parseQuestions(readmeContent, dir.name);
+                    }
+                  }
+
+                  return { name: dir.name, path: dir.path, questions, files: cFiles, readmeContent };
+                } catch (e) {
+                  return { name: dir.name, path: dir.path, questions: [], files: [], readmeContent: null };
+                }
+              })
+            );
+
+            const sortedWeeks = [...weeksPayload].sort((a, b) => {
+              const numA = parseInt(a.name.replace(/\D/g, ''), 10) || 0;
+              const numB = parseInt(b.name.replace(/\D/g, ''), 10) || 0;
+              return numA - numB;
+            });
+
+            setWeeks(sortedWeeks);
+            setDataSource('API');
+            localStorage.setItem(`cache_weeks_${targetRepo}`, JSON.stringify(sortedWeeks));
+          } catch (err) {
+            console.warn('API Error, loading offline fallback:', err);
+            if (targetRepo === 'soorzj/EEYEL-DSA') {
+              setWeeks(FALLBACK_WEEKS);
+              setDataSource('OFFLINE');
+            } else {
+              setWeeks([]);
+              setDataSource('OFFLINE');
+            }
+          } finally {
+            setLoadingRepo(false);
+          }
+        };
+
+        useEffect(() => { fetchRepositoryStructure(repo); }, [repo]);
+
+        const handleSelectWeek = (weekName) => {
+          const found = weeks.find(w => w.name === weekName);
+          setSelectedWeek(found || null);
+        };
+
+        const handleSelectFile = async (weekName, fileName) => {
+          setLoadingFile(true);
+          setActiveFileName(fileName);
+          setActiveQuestion(null);
+          setActiveQuestionId(null);
+
+          const currentWeekData = weeks.find(w => w.name === weekName);
+          if (currentWeekData) {
+            setSelectedWeek(currentWeekData);
+
+            if (fileName.toLowerCase() === 'readme.md') {
+              setActiveFileContent(currentWeekData.readmeContent);
+              setLoadingFile(false);
+              setTerminalTrigger({ cmd: `cat README.md`, timestamp: Date.now() });
+              return;
+            }
+
+            const cacheKey = `cache_file_${repo}_${weekName}_${fileName}`;
+            const cachedContent = localStorage.getItem(cacheKey);
+            if (cachedContent) {
+              setActiveFileContent(cachedContent);
+              setLoadingFile(false);
+              setTerminalTrigger({ cmd: `cat ${fileName}`, timestamp: Date.now() });
+              return;
+            }
+
+            const fileMeta = currentWeekData.files.find(f => f.name === fileName);
+            if (fileMeta && fileMeta.download_url) {
+              try {
+                const res = await fetch(fileMeta.download_url);
+                if (res.ok) {
+                  const rawText = await res.text();
+                  setActiveFileContent(rawText);
+                  localStorage.setItem(cacheKey, rawText);
+                } else {
+                  throw new Error('Raw fetch failed');
+                }
+              } catch (e) {
+                const fallbackPath = `${weekName}/${fileName}`;
+                if (FALLBACK_FILES[fallbackPath]) {
+                  setActiveFileContent(FALLBACK_FILES[fallbackPath]);
+                } else {
+                  setActiveFileContent('// Error loading file contents.');
+                }
+              }
+            } else {
+              const fallbackPath = `${weekName}/${fileName}`;
+              if (FALLBACK_FILES[fallbackPath]) {
+                setActiveFileContent(FALLBACK_FILES[fallbackPath]);
+              } else {
+                setActiveFileContent('// File not found.');
+              }
+            }
+          }
+          setLoadingFile(false);
+          setTerminalTrigger({ cmd: `cat ${fileName}`, timestamp: Date.now() });
+        };
+
+        const handleSelectQuestion = (weekName, questionId) => {
+          const currentWeekData = weeks.find(w => w.name === weekName);
+          if (!currentWeekData) return;
+
+          const question = currentWeekData.questions.find(q => q.id === questionId);
+          if (!question) return;
+
+          setSelectedWeek(currentWeekData);
+          setActiveQuestion(question);
+          setActiveQuestionId(questionId);
+
+          const qIndex = currentWeekData.questions.findIndex(q => q.id === questionId) + 1;
+          setTerminalTrigger({ cmd: `cat q${qIndex}`, timestamp: Date.now() });
+
+          if (question.associatedFile) {
+            handleSelectFile(weekName, question.associatedFile);
+            setActiveQuestion(question);
+            setActiveQuestionId(questionId);
+          } else {
+            setActiveFileName(null);
+            setActiveFileContent(null);
+          }
+        };
+
+        const handleRepositoryChange = (e) => {
+          e.preventDefault();
+          if (customRepo.trim()) {
+            setRepo(customRepo.trim());
+            setShowConfig(false);
+            setSelectedWeek(null);
+            setActiveFileContent(null);
+            setActiveFileName(null);
+            setActiveQuestion(null);
+            setActiveQuestionId(null);
+          }
+        };
+
+        useEffect(() => {
+          if (!terminalTrigger) return;
+          const termInput = document.querySelector('#terminal-console input');
+          if (termInput) {
+            termInput.value = terminalTrigger.cmd;
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
+            termInput.dispatchEvent(enterEvent);
+            termInput.focus();
+          }
+        }, [terminalTrigger]);
+
+        return (
+          <div className="h-screen w-full bg-[#0a0a0a] text-neutral-300 font-mono flex flex-col overflow-hidden select-none relative">
+            <header className="h-12 border-b border-neutral-800 bg-[#111] flex items-center justify-between px-4 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40"></div>
+                  <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40"></div>
+                </div>
+                <div className="h-4 w-[1px] bg-neutral-800 mx-2"></div>
+                <span className="text-xs text-neutral-400 font-semibold font-mono">eeyel-dsa-cli — explorer</span>
+                <button onClick={() => setShowConfig(!showConfig)} className="text-[11px] text-zinc-500 hover:text-emerald-400 font-mono transition-colors ml-4 flex items-center gap-1 cursor-pointer">
+                  <Icon name="sliders" className="w-3 h-3" />
+                  <span>[config]</span>
+                </button>
+              </div>
+              <div className="flex items-center gap-6 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase font-mono">
+                <span className="hover:text-emerald-400 cursor-pointer transition-colors" onClick={() => setShowConfig(!showConfig)}>
+                  Repo: {repo}
+                </span>
+                <button onClick={() => fetchRepositoryStructure(repo, true)} disabled={loadingRepo} className="text-[11px] text-neutral-400 hover:text-emerald-400 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50">
+                  <Icon name="refreshCw" className={`w-3 h-3 ${loadingRepo ? 'animate-spin' : ''}`} />
+                  <span>[sync]</span>
+                </button>
+                <div className="bg-neutral-800 h-6 px-3 flex items-center rounded text-neutral-400 font-bold">
+                  {dataSource}
+                </div>
+              </div>
+            </header>
+
+            {showConfig && (
+              <div className="bg-[#111] border-b border-neutral-800 overflow-hidden shrink-0">
+                <div className="max-w-3xl mx-auto px-4 py-5 text-left">
+                  <form onSubmit={handleRepositoryChange} className="flex flex-col md:flex-row items-end gap-3.5">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block mb-1.5 font-sans">
+                        Integrate Your Github Repository
+                      </label>
+                      <p className="text-xs text-zinc-500 mb-3 font-sans">
+                        Change the input below to render laboratory files from any custom GitHub repository that conforms to the Week structure.
+                      </p>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-xs text-zinc-600 font-mono">https://github.com/</span>
+                        <input
+                          type="text"
+                          value={customRepo}
+                          onChange={(e) => setCustomRepo(e.target.value)}
+                          placeholder="username/repository"
+                          className="w-full bg-neutral-950 border border-neutral-800 rounded px-3 py-2 pl-[135px] text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                    <button type="submit" className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs py-2 px-4 rounded transition h-[34px] flex items-center justify-center space-x-1 cursor-pointer">
+                      <Icon name="check" className="w-3.5 h-3.5" />
+                      <span>Update Target</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+              <aside className="w-full md:w-80 border-b md:border-b-0 md:border-r border-neutral-800 bg-[#0d0d0d] flex flex-col shrink-0 overflow-y-auto">
+                <FileTree
+                  weeks={weeks}
+                  selectedWeek={selectedWeek}
+                  onSelectWeek={handleSelectWeek}
+                  onSelectFile={handleSelectFile}
+                  onSelectQuestion={handleSelectQuestion}
+                  activeFileName={activeFileName}
+                  activeQuestionId={activeQuestionId}
+                  loading={loadingRepo}
+                />
+              </aside>
+
+              <main className="flex-1 bg-[#050505] flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+                  <CodeViewer
+                    code={activeFileContent}
+                    fileName={activeFileName}
+                    question={activeQuestion}
+                    loading={loadingFile}
+                    repoUrl={`https://github.com/${repo}`}
+                    weekName={selectedWeek?.name || null}
+                  />
+                </div>
+
+                <div className="border-t border-neutral-800/80 bg-neutral-950 p-3 shrink-0">
+                  <TerminalConsole
+                    weeks={weeks}
+                    currentWeek={selectedWeek}
+                    onSelectWeek={handleSelectWeek}
+                    onSelectFile={handleSelectFile}
+                    onSelectQuestion={handleSelectQuestion}
+                    repoName={repo}
+                  />
+                </div>
+              </main>
+            </div>
+
+            <footer className="h-8 bg-emerald-500/90 text-black flex items-center px-4 justify-between text-[11px] font-bold shrink-0">
+              <div className="flex gap-4">
+                <span>● Connected to GitHub API</span>
+                <span>● Repository: {repo}</span>
+              </div>
+              <div className="flex gap-4">
+                <span>-- NORMAL --</span>
+                <span>EEYEL-DSA MASTER CLI</span>
+              </div>
+            </footer>
+          </div>
+        );
+      }
+
+      // Initial Mount
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+
+    <!-- Vite HMR Entry Connection (silently discarded if index.html is loaded directly offline) -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
