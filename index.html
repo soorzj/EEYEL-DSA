@@ -580,8 +580,10 @@
             </div>
           </div>
         );
-         // Terminal Console component
-      function TerminalConsole({ weeks, currentWeek, onSelectWeek, onSelectFile, onSelectQuestion, repoName }) {
+      }
+
+      // Terminal Console component
+      function TerminalConsole({ weeks, currentWeek, onSelectWeek, onSelectFile, onSelectQuestion, repoName, terminalTrigger }) {
         const [input, setInput] = useState('');
         const [isExpanded, setIsExpanded] = useState(false);
         const [history, setHistory] = useState([
@@ -594,6 +596,7 @@
         const [historyIndex, setHistoryIndex] = useState(-1);
         const terminalEndRef = useRef(null);
         const inputRef = useRef(null);
+        const lastProcessedTriggerRef = useRef(null);
 
         useEffect(() => {
           terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -601,6 +604,14 @@
 
         const focusInput = () => inputRef.current?.focus();
         useEffect(() => { focusInput(); }, []);
+
+        // Listen to terminal triggers from sidebar clicks
+        useEffect(() => {
+          if (terminalTrigger && terminalTrigger.timestamp !== lastProcessedTriggerRef.current) {
+            lastProcessedTriggerRef.current = terminalTrigger.timestamp;
+            handleCommand(terminalTrigger.cmd);
+          }
+        }, [terminalTrigger]);
 
         const addLine = (text, type = 'output') => {
           setHistory(prev => [...prev, { id: Math.random().toString(), type, text }]);
@@ -1054,17 +1065,6 @@
           }
         };
 
-        useEffect(() => {
-          if (!terminalTrigger) return;
-          const termInput = document.querySelector('#terminal-console input');
-          if (termInput) {
-            termInput.value = terminalTrigger.cmd;
-            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true });
-            termInput.dispatchEvent(enterEvent);
-            termInput.focus();
-          }
-        }, [terminalTrigger]);
-
         return (
           <div className="h-screen w-full bg-[#0a0a0a] text-neutral-200 font-mono flex flex-col overflow-hidden select-none relative">
             <header className="h-12 border-b border-neutral-800 bg-[#111] flex items-center justify-between px-3 md:px-4 shrink-0">
@@ -1161,6 +1161,7 @@
                     onSelectFile={handleSelectFile}
                     onSelectQuestion={handleSelectQuestion}
                     repoName={repo}
+                    terminalTrigger={terminalTrigger}
                   />
                 </div>
               </main>
