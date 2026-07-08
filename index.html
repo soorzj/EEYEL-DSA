@@ -580,11 +580,10 @@
             </div>
           </div>
         );
-      }
-
-      // Terminal Console component
+         // Terminal Console component
       function TerminalConsole({ weeks, currentWeek, onSelectWeek, onSelectFile, onSelectQuestion, repoName }) {
         const [input, setInput] = useState('');
+        const [isExpanded, setIsExpanded] = useState(false);
         const [history, setHistory] = useState([
           { id: '1', type: 'success', text: 'EEYEL-DSA Code Fetcher Terminal Shell [v1.0.0]' },
           { id: '2', type: 'output', text: `Connected to GitHub Repository: ${repoName}` },
@@ -657,8 +656,8 @@
                 addLine(`  -rw-r--r--   [FILE]  README.md (Lab Tasks)`);
                 currentWeek.files.forEach(f => addLine(`  -rw-r--r--   [FILE]  ${f.name} (${(f.size / 1024).toFixed(2)} KB)`));
                 if (currentWeek.questions.length > 0) {
-                  addLine('\nLab Questions:', 'success');
-                  currentWeek.questions.forEach((q, idx) => addLine(`  [Q${idx + 1}] ${q.text}`));
+                   addLine('\nLab Questions:', 'success');
+                   currentWeek.questions.forEach((q, idx) => addLine(`  [Q${idx + 1}] ${q.text}`));
                 }
               }
               break;
@@ -763,42 +762,76 @@
         };
 
         return (
-          <div onClick={focusInput} className="bg-neutral-950 border border-neutral-900 rounded-lg p-4 font-mono text-xs text-neutral-200 min-h-[160px] max-h-[220px] overflow-y-auto flex flex-col cursor-text relative select-text">
-            <div className="flex items-center justify-between border-b border-neutral-900/80 pb-2 mb-3 sticky top-0 bg-neutral-950 z-10 select-none">
+          <div
+            onClick={isExpanded ? focusInput : () => setIsExpanded(true)}
+            id="terminal-console"
+            className={`bg-neutral-950 border border-neutral-900 rounded-lg p-3 md:p-4 font-mono text-xs text-neutral-200 transition-all duration-300 flex flex-col cursor-text relative select-text ${
+              isExpanded ? 'min-h-[160px] max-h-[220px] overflow-y-auto' : 'min-h-[46px] max-h-[46px] overflow-hidden cursor-pointer hover:bg-neutral-900/40'
+            }`}
+          >
+            {/* Terminal Title Bar */}
+            <div className={`flex items-center justify-between sticky top-0 bg-neutral-950 z-10 select-none ${isExpanded ? 'border-b border-neutral-900/80 pb-2 mb-3' : ''}`}>
               <div className="flex items-center space-x-2">
                 <Icon name="terminal" className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="text-neutral-300 text-xs font-bold">guest@eeyel-dsa: ~/cli_fetcher</span>
+                {!isExpanded && (
+                  <span className="text-[10px] text-neutral-500 font-bold ml-2 animate-pulse">[click to expand]</span>
+                )}
               </div>
-              <span className="text-[10px] text-neutral-300 font-extrabold uppercase tracking-wider font-mono">CLI PANEL</span>
+              <div className="flex items-center space-x-3">
+                <span className="text-[10px] text-neutral-300 font-extrabold uppercase tracking-wider font-mono hidden sm:inline">CLI PANEL</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="flex items-center gap-1 text-[10px] font-bold text-neutral-300 hover:text-emerald-400 cursor-pointer bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800 transition"
+                >
+                  {isExpanded ? (
+                    <div className="flex items-center space-x-1">
+                      <Icon name="chevronDown" className="w-3 h-3 text-neutral-400" />
+                      <span>[collapse]</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-1">
+                      <Icon name="chevronUp" className="w-3 h-3 text-emerald-400" />
+                      <span>[expand]</span>
+                    </div>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <div className="flex-1 flex flex-col space-y-1">
-              {history.map(line => (
-                <div key={line.id} className="whitespace-pre-wrap leading-relaxed">
-                  {line.type === 'input' && <span className="text-neutral-300 font-semibold">{line.text}</span>}
-                  {line.type === 'output' && <span className="text-zinc-100">{line.text}</span>}
-                  {line.type === 'error' && <span className="text-rose-400 font-extrabold">⚠️ {line.text}</span>}
-                  {line.type === 'success' && <span className="text-emerald-400 font-bold">✓ {line.text}</span>}
-                </div>
-              ))}
-              <div ref={terminalEndRef} />
-            </div>
+            {/* Terminal Content wrapper - hidden when collapsed, but in DOM */}
+            <div className={`flex-1 flex flex-col min-h-0 ${isExpanded ? '' : 'hidden'}`}>
+              <div className="flex-1 flex flex-col space-y-1">
+                {history.map(line => (
+                  <div key={line.id} className="whitespace-pre-wrap leading-relaxed">
+                    {line.type === 'input' && <span className="text-neutral-300 font-semibold">{line.text}</span>}
+                    {line.type === 'output' && <span className="text-zinc-100">{line.text}</span>}
+                    {line.type === 'error' && <span className="text-rose-400 font-extrabold">⚠️ {line.text}</span>}
+                    {line.type === 'success' && <span className="text-emerald-400 font-bold">✓ {line.text}</span>}
+                  </div>
+                ))}
+                <div ref={terminalEndRef} />
+              </div>
 
-            <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-neutral-900/60 select-none">
-              <span className="text-emerald-400 font-extrabold whitespace-nowrap">
-                guest@eeyel-dsa:{currentWeek ? `/${currentWeek.name}` : '/'}$
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-white border-none outline-none focus:ring-0 font-mono text-xs caret-emerald-400 min-w-[100px]"
-                placeholder='Type command here (e.g., "help", "ls")...'
-                autoComplete="off"
-                spellCheck="false"
-              />
+              <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-neutral-900/60 select-none">
+                <span className="text-emerald-400 font-extrabold whitespace-nowrap">
+                  guest@eeyel-dsa:{currentWeek ? `/${currentWeek.name}` : '/'}$
+                </span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 bg-transparent text-white border-none outline-none focus:ring-0 font-mono text-xs caret-emerald-400 min-w-[100px]"
+                  placeholder='Type command here (e.g., "help", "ls")...'
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+              </div>
             </div>
           </div>
         );
@@ -1034,29 +1067,30 @@
 
         return (
           <div className="h-screen w-full bg-[#0a0a0a] text-neutral-200 font-mono flex flex-col overflow-hidden select-none relative">
-            <header className="h-12 border-b border-neutral-800 bg-[#111] flex items-center justify-between px-4 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
+            <header className="h-12 border-b border-neutral-800 bg-[#111] flex items-center justify-between px-3 md:px-4 shrink-0">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="hidden sm:flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40"></div>
                   <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40"></div>
                   <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40"></div>
                 </div>
-                <div className="h-4 w-[1px] bg-neutral-800 mx-2"></div>
-                <span className="text-xs text-white font-mono font-black tracking-wider uppercase">eeyel-dsa-cli — explorer</span>
-                <button onClick={() => setShowConfig(!showConfig)} className="text-[11px] text-neutral-300 hover:text-emerald-400 font-mono font-bold transition-colors ml-4 flex items-center gap-1 cursor-pointer bg-neutral-800/60 px-2 py-0.5 rounded border border-neutral-700">
+                <div className="hidden sm:block h-4 w-[1px] bg-neutral-800 mx-2"></div>
+                <span className="text-xs text-white font-mono font-black tracking-wider uppercase hidden md:inline">eeyel-dsa-cli — explorer</span>
+                <span className="text-xs text-white font-mono font-black tracking-wider uppercase md:hidden">eeyel-dsa</span>
+                <button onClick={() => setShowConfig(!showConfig)} className="text-[11px] text-neutral-300 hover:text-emerald-400 font-mono font-bold transition-colors ml-1 md:ml-4 flex items-center gap-1 cursor-pointer bg-neutral-800/60 px-2 py-0.5 rounded border border-neutral-700">
                   <Icon name="sliders" className="w-3 h-3" />
-                  <span>[config]</span>
+                  <span className="hidden xs:inline">[config]</span>
                 </button>
               </div>
-              <div className="flex items-center gap-6 text-[11px] font-bold tracking-wider text-neutral-200 uppercase font-mono">
-                <span className="hover:text-emerald-400 cursor-pointer transition-colors bg-neutral-800/40 border border-neutral-700/60 px-2 py-1 rounded" onClick={() => setShowConfig(!showConfig)}>
+              <div className="flex items-center gap-3 md:gap-6 text-[11px] font-bold tracking-wider text-neutral-200 uppercase font-mono">
+                <span className="hover:text-emerald-400 cursor-pointer transition-colors bg-neutral-800/40 border border-neutral-700/60 px-2 py-1 rounded max-w-[130px] sm:max-w-none truncate" onClick={() => setShowConfig(!showConfig)}>
                   Repo: <span className="text-white font-black">{repo}</span>
                 </span>
                 <button onClick={() => fetchRepositoryStructure(repo, true)} disabled={loadingRepo} className="text-[11px] text-white hover:text-emerald-400 font-extrabold transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50 bg-neutral-800/60 border border-neutral-700 px-2 py-1 rounded">
                   <Icon name="refreshCw" className={`w-3.5 h-3.5 ${loadingRepo ? 'animate-spin' : ''}`} />
-                  <span>[sync]</span>
+                  <span className="hidden sm:inline">[sync]</span>
                 </button>
-                <div className="bg-emerald-950/40 border border-emerald-500/30 h-6 px-3 flex items-center rounded text-emerald-400 font-extrabold text-[10px]">
+                <div className="hidden sm:flex bg-emerald-950/40 border border-emerald-500/30 h-6 px-3 items-center rounded text-emerald-400 font-extrabold text-[10px]">
                   {dataSource}
                 </div>
               </div>
@@ -1094,7 +1128,7 @@
             )}
 
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-              <aside className="w-full md:w-80 border-b md:border-b-0 md:border-r border-neutral-800 bg-[#0d0d0d] flex flex-col shrink-0 overflow-y-auto">
+              <aside className="w-full h-48 sm:h-56 md:h-auto md:w-80 border-b md:border-b-0 md:border-r border-neutral-800 bg-[#0d0d0d] flex flex-col shrink-0 overflow-y-auto">
                 <FileTree
                   weeks={weeks}
                   selectedWeek={selectedWeek}
@@ -1133,13 +1167,13 @@
             </div>
 
             <footer className="h-8 bg-emerald-500/90 text-black flex items-center px-4 justify-between text-[11px] font-bold shrink-0">
-              <div className="flex gap-4">
-                <span>● Connected to GitHub API</span>
-                <span>● Repository: {repo}</span>
+              <div className="flex gap-2 sm:gap-4 truncate">
+                <span className="hidden sm:inline">● Connected to GitHub API</span>
+                <span className="truncate">● Repo: {repo}</span>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-2 sm:gap-4 shrink-0">
                 <span>-- NORMAL --</span>
-                <span>EEYEL-DSA MASTER CLI</span>
+                <span className="hidden md:inline">EEYEL-DSA MASTER CLI</span>
               </div>
             </footer>
           </div>
