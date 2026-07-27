@@ -1,6 +1,6 @@
 <img width="2048" height="263" alt="Exam_Registration_Problems_and_Solutions" src="https://github.com/user-attachments/assets/d42c796d-f18c-4d40-abdf-2499469cd89e" />
 
-### Data Structures and Algorithms - lab and class programs and tasks repository for the EL batch of '29 of CET. 
+# Data Structures and Algorithms - lab and class programs and tasks repository for the EL batch of '29 of CET. 
 
 Upkeeped by fellow contributors
 
@@ -8,7 +8,7 @@ Take care when copying this work. Any plagarism related strikes on your academic
 
 This repository has been created with the sole purpose of guidance or a study resourse for fellow classmates B.Tech pursuers and upcoming batches.
 
-### Detailed instructions to document the code and keep it neat and clean. 
+# Detailed instructions to document the code and keep it neat and clean. 
 
 Importance must be given to the header documentation where the Aim of the program, date, version number, author should be mandatory. It is reccomended that function prototypes be used so that the main function displays at the top of the program. Make sure the fucntion prototypes are also documented clearly. Also reccomended to split common actions in main function like accpeting elements into an array into seperate external functions to imporve readability. The contents of the fucntions and subsequent blocks of code must be indented properly using spaces or tabspace. An example of a good documented code is given below:
 ```c
@@ -47,7 +47,7 @@ int main()
 --- other functions---
 
 ```
-
+# Repository viewer website if you have difficulties in viewing GitHub
 <img width="2048" height="263" alt="Exam_Registration_Problems_and_Solutions" src="https://github.com/user-attachments/assets/ba9ba489-c70d-4b97-8639-6ffc65e4c99d" />
 
 #### USE THE IN BUILT FILE VIEWWER ADJUSTED TO VIEW, COPY OR DOWNLOAD THE PROGRAM FILES WITHIN YOUR BROWSER IN AN INTERACTIVE WAY:
