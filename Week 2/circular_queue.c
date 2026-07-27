@@ -18,7 +18,7 @@ int seeFront(void);		//fucntion that checks for queue empty and just returns the
 void print_queue(void);	//fucntion that checks for queue empty and prints the elements
 int isEmpty(void);		//fucntion that checks for queue empty - if the initial case is triggered
 int isFull(void);		//fucntion that checks for queue full - if back is one more than front, 
-						      //also checks the wrap around case at the end and beggining of the queue.
+						//also checks the wrap around case at the end and beggining of the queue.
 
 int main()
 {
