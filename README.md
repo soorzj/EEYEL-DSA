@@ -36,6 +36,7 @@ int isFull(void);		//fucntion that checks for queue full - if back is one more t
 
 int main()
 {
+	//proper indentation
   if (front == -1 && back == -1)
   		return 1;
   	else
