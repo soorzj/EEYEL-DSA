@@ -1,10 +1,9 @@
-/*
- * queue.c
- * Program to implement queue as an array in C
- * Author: SOORAJ
- * Date: 6-7-26
- * Version: 1
- */
+/************************************************
+ * Program to implement queue as an array		*
+ * version: 2									*
+ * Date: 27 - 7 -26								*
+ * Author: Sooraj								*
+ ************************************************/
 
 #include <stdio.h>
 
@@ -13,70 +12,12 @@ int queue[MAX];
 int front=-1, back=-1;
 
 /* function prototypes */
-void enqueue(int value);
-int dequeue(void);
-int seeFront(void);
-void print_queue(void);
-int isEmpty(void);
-int isFull(void);
-
-void enqueue(int value){
-	if(front ==-1)
-		front++;
-	if(isFull()==1)
-		printf("Queue is Full\n");
-	else{
-		back++;
-		queue[back]=value;
-		printf("Queued\n");
-		}
-	}
-
-int dequeue(){
-	if(isEmpty()==1){
-		printf("Queue is Empty\n");
-		return -1;
-		}
-	else
-		return (queue[front++]);
-	}
-
-int seeFront(){
-	if(isEmpty()==1){
-		printf("Queue is Empty\n");
-		return -1;
-		}
-	else
-		return (queue[back]);
-	}
-
-void print_queue(){
-	if(isEmpty()==1){
-		printf("Queue is Empty\n");
-		}
-	else{
-		for (int i = back; i >= front; --i)
-			printf("%d\t", queue[i]);
-		printf("\n");
-		}
-	}
-	
-int isEmpty(){
-	if (front>back)
-		return 1;
-	else if (front==back==-1)
-		return 1;
-	else
-		return 0;
-	}
-	
-int isFull(){
-	if(back==MAX)
-		return 1;
-	else
-		return 0;
-	}
-		
+void enqueue(int value);//fucntion that checks for queue full or empty and inserts the element
+int dequeue(void);		//fucntion that checks for queue empty and dequeues the element
+int seeFront(void);		//fucntion that checks for queue empty and just prints the element
+void print_queue(void);	//fucntion that checks for queue empty and prints the elements
+int isEmpty(void);		//fucntion that checks for queue empty - if the initial case is triggered or if front > back
+int isFull(void);		//fucntion that checks for queue full - if back is one less than MAX, 
 
 int main()
 {
@@ -125,4 +66,64 @@ int main()
 		}
 	}
 }
+
+void enqueue(int value){
+	if(front ==-1)
+		front++;
+	if(isFull()==1)
+		printf("Queue is Full\n");
+	else{
+		back++;
+		queue[back]=value;
+		printf("Queued\n");
+		}
+	}
+
+int dequeue(){
+	if(isEmpty()==1){
+		printf("Queue is Empty\n");
+		return -1;
+		}
+	else
+		return (queue[front++]);
+	}
+
+int seeFront(){
+	if(isEmpty()==1){
+		printf("Queue is Empty\n");
+		return -1;
+		}
+	else
+		return (queue[front]);
+	}
+
+void print_queue(){
+	if(isEmpty()==1){
+		printf("Queue is Empty\n");
+		}
+	else{
+		for (int i = back; i >= front; --i)
+			printf("%d\t", queue[i]);
+		printf("\n");
+		}
+	}
+	
+int isEmpty(){
+	if (front>back)
+		return 1;
+	else if ((front == -1 && back == -1))
+		return 1;
+	else
+		return 0;
+	}
+	
+int isFull(){
+	if(back==MAX-1)
+		return 1;
+	else
+		return 0;
+	}
+		
+
+
 
