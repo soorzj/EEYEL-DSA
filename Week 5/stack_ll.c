@@ -19,13 +19,13 @@ struct node *top = NULL;
 void push(int val);                     // inserts element at top of the stack
 void pop(void);                         // deletes element from top of the stack
 void displayStack(void);                // prints elements in stack order
-void peek()								// displays the element at the top of the stack(
-int isEmpty()							// checks if the stack is empty (if top=NULL)
+void peek();							// displays the element at the top of the stack(
+int isEmpty();							// checks if the stack is empty (if top=NULL)
 
 int main() {
     int choice = -1, val;
     while (choice != 5) {
-        printf("\nMenu for Stack ADT\n");
+        printf("\nMenu for Stack\n");
         printf("1. Push\n2. Pop\n3. Peek\n4. Display the Stack\n5. Exit\n");
         printf("Enter Your choice:\n");
         scanf("%d", &choice);
@@ -67,7 +67,7 @@ void pop() {
         return;
     }
     struct node *first = top;
-    printf("Top element popped:%d\n",temp->data);
+    printf("Top element popped:%d\n",first->data);
     top = top->next;
     free(first);
     

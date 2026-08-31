@@ -25,8 +25,8 @@ void displayQueue(void);               // prints elements in order
 int main() {
     int choice = -1, val;
     while (choice != 5) {
-        printf("\nMenu for Queue ADT\n");
-        printf("1. Enqueue (Add Element at back)\n2. Dequeue (Delete Element from front)\n3. Peek (View Front Element)\n4. Display Queue\n5. Exit\n");
+        printf("\nMenu for Queue\n");
+        printf("1. Enqueue \n2. Dequeue \n3. Peek \n4. Display Queue\n5. Exit\n");
         printf("Enter Your choice:\n");
         scanf("%d", &choice);
         switch (choice) {
