@@ -183,13 +183,6 @@ void insertFront(int value)
     // Allocate memory for the new node.
     struct node *newNode = (struct node *)malloc(sizeof(struct node));
 
-    // Stop the insertion if memory allocation fails.
-    if (newNode == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return;
-    }
-
     // Store the supplied value in the new node.
     newNode->data = value;
 
@@ -208,13 +201,6 @@ void insertBack(int value)
 {
     // Allocate memory for the new node.
     struct node *newNode = (struct node *)malloc(sizeof(struct node));
-
-    // Stop the insertion if memory allocation fails.
-    if (newNode == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return;
-    }
 
     // Store the supplied value and mark the new node as the last node.
     newNode->data = value;
@@ -263,14 +249,7 @@ void insertAtPosition(int position, int value)
 
     // Allocate memory for the new node only after confirming that the position is valid.
     struct node *newNode = (struct node *)malloc(sizeof(struct node));
-
-    // Stop the insertion if memory allocation fails.
-    if (newNode == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return;
-    }
-
+    
     // Store the value and connect the new node to the following node.
     newNode->data = value;
     newNode->next = current->next;
