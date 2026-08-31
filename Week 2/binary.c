@@ -1,4 +1,4 @@
-```c
+
 /************************************************
  * Program : Binary Search in an Array
  * Version : 3
@@ -132,4 +132,3 @@ int binarySearch(int array[], int numberOfElements, int searchElement)
     /* Return -1 when the search element does not exist in the array. */
     return -1;
 }
-```
