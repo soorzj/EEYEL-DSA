@@ -121,13 +121,6 @@ void enqueue(int value)
     // Allocate memory dynamically for the new queue node.
     struct node *newNode = (struct node *)malloc(sizeof(struct node));
 
-    // Stop the operation if memory allocation fails.
-    if (newNode == NULL)
-    {
-        printf("Memory allocation failed\n");
-        return;
-    }
-
     // Store the supplied value in the new node.
     newNode->data = value;
 
