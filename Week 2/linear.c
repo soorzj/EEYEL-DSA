@@ -1,4 +1,4 @@
-```c
+
 /************************************************
  * Program to perform linear search in an array *
  * Version: 3                                   *
@@ -66,4 +66,3 @@ int linearSearch(int array[], int numberOfElements, int searchElement)
     /* Return -1 after checking the entire array without finding the element. */
     return -1;
 }
-```
