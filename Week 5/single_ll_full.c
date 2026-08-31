@@ -171,11 +171,11 @@ void deleteAtPosition(int pos) {
 
     struct node *current = head;
     for (int i = 1; i < pos-1; i++) {
-        current = current->next;
-        if (current == NULL) {
+        if (current->next == NULL) {
             printf("Position out of range\n");
             return;
         }
+        current = current->next;
     }
 
     struct node *toDelete = current->next;
@@ -194,6 +194,7 @@ void displayList(void) {
         printf("%d\t", current->data);
         current = current->next;
     }
+    printf("\n");
 }
 
 void updateElement(int oldVal, int newVal) {
