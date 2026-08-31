@@ -49,20 +49,15 @@ int main(void)
 {
     int choice = 0;         // Stores the user's menu choice
 
-    printf("=================================\n");
-    printf("       QUEUE USING ARRAY\n");
-    printf("=================================\n");
-
     // Continue displaying the menu until the user chooses 5
     while (choice != 5)
     {
-        printf("\n------------- MENU -------------\n");
+        printf("\n MENU \n");
         printf("1. Enqueue\n");
         printf("2. Dequeue\n");
         printf("3. See Front Element\n");
         printf("4. Display Queue\n");
         printf("5. Exit\n");
-        printf("--------------------------------\n");
 
         printf("Enter your choice: ");
         scanf("%d", &choice);
