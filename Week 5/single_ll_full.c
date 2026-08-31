@@ -23,7 +23,7 @@ void deleteFirst(void);                 //fucntion that checks if LL is empty an
 void deleteLast(void);                  //fucntion that checks if LL is empty and delets element at last position
 void deleteAtPosition(int pos);         //fucntion that checks if LL is empty and delets element at a given position
 void displayList(void);                 //fucntion that checks if LL is empty and prints elements in order
-void updateElement(int oldVal, int newVal);
+void updateElement(int old, int new);   //fucntion that checks for a value 'old' and replaces it with value 'new'
 
 int main() {
     int choice=-1, val, pos;
@@ -79,7 +79,13 @@ int main() {
                 displayList();
                 break;
             case 8:
-                
+            	int old,new;
+                printf("Enter The element to be replaced:\n");
+                scanf("%d", &old);
+                printf("Enter The new element:\n");
+                scanf("%d", &new);
+                updateElement(old,new);
+                break;
             case 8:
                 printf("Exiting Program\n");
                 break;
