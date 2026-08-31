@@ -19,7 +19,7 @@ struct node *head = NULL;
 int isEmpty(void);                     // checks if queue is empty
 void enqueue(int val);                 // inserts element at last position (back)
 void dequeue(void);                    // deletes element at first position (front)
-void peek(void);                       // views element at first position without removing
+void peek(void);                       // views element at first position without dequeuing
 void displayQueue(void);               // prints elements in order
 
 int main() {
@@ -55,7 +55,10 @@ int main() {
 }
 
 int isEmpty() {
-    return (head == NULL);
+    if (head == NULL)
+    	return 1;
+    else
+    	return 0;
 }
 
 void enqueue(int val) {
@@ -75,13 +78,14 @@ void enqueue(int val) {
 
 void dequeue() {
     if (isEmpty()) {
-        printf("Queue Underflow / Queue is empty\n");
+        printf("Queue is empty\n");
         return;
     }
     struct node *first = head;
+    printf("Front element dequeued: %d\n",first->data);
     head = head->next;
     free(first);
-    printf("Front element dequeued\n");
+    
 }
 
 void peek() {

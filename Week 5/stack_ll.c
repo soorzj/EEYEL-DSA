@@ -16,13 +16,15 @@ struct node {
 struct node *top = NULL;
 
 // function prototypes
-void push(int val);                     // inserts element at top (front of LL)
-void pop(void);                         // deletes element from top (front of LL)
+void push(int val);                     // inserts element at top of the stack
+void pop(void);                         // deletes element from top of the stack
 void displayStack(void);                // prints elements in stack order
+void peek()								// displays the element at the top of the stack(
+int isEmpty()							// checks if the stack is empty (if top=NULL)
 
 int main() {
     int choice = -1, val;
-    while (choice != 4) {
+    while (choice != 5) {
         printf("\nMenu for Stack ADT\n");
         printf("1. Push\n2. Pop\n3. Peek\n4. Display the Stack\n5. Exit\n");
         printf("Enter Your choice:\n");
@@ -60,20 +62,20 @@ void push(int val) {
 }
 
 void pop() {
-    if (top == NULL) {
-        printf("Stack Underflow / Stack is empty\n");
+    if (isEmpty()) {
+        printf("Stack Underflow\n");
         return;
     }
-    struct node *temp = top;
+    struct node *first = top;
     printf("Top element popped:%d\n",temp->data);
     top = top->next;
-    free(temp);
+    free(first);
     
 }
 
 void peek() {
-    if (top == NULL) {
-        printf("Stack Underflow / Stack is empty\n");
+    if (isEmpty()) {
+        printf("Stack Underflow\n");
         return;
     }
     struct node *temp = top;
@@ -81,8 +83,8 @@ void peek() {
 }
 
 void displayStack(void) {
-    if (top == NULL) {
-        printf("Stack is empty\n");
+    if (isEmpty()) {
+        printf("Stack underflow\n");
         return;
     }
     struct node *current = top;
@@ -91,4 +93,11 @@ void displayStack(void) {
         current = current->next;
     }
     printf("\n");
+}
+
+int isEmpty(){
+	if (top == NULL) 
+        return 1;
+    else
+    	return 0;
 }

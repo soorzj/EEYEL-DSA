@@ -86,7 +86,7 @@ int main() {
                 scanf("%d", &new);
                 updateElement(old,new);
                 break;
-            case 8:
+            case 9:
                 printf("Exiting Program\n");
                 break;
             default:
