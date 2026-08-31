@@ -5,7 +5,7 @@
  * Date: 6-7-26
  * Version: 1
  */
-
+// THIS DOESNT PROPERLY WORK ON ITS OWN. NEED TO BE COUPLED WITH QUEUE2.C
 #include <stdio.h>
 
 #define MAX 10
