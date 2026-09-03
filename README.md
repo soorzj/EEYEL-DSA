@@ -12,12 +12,13 @@ This repository has been created with the sole purpose of guidance or a study re
 
 Importance must be given to the header documentation where the Aim of the program, date, version number, author should be mandatory. It is reccomended that function prototypes be used so that the main function displays at the top of the program. Make sure the fucntion prototypes are also documented clearly. Also reccomended to split common actions in main function like accpeting elements into an array into seperate external functions to imporve readability. The contents of the fucntions and subsequent blocks of code must be indented properly using spaces or tabspace. An example of a good documented code is given below:
 ```c
-/****************************************************
- * Program to implement circular queue as an array	*
- * version: 1										*
- * Date: 27 - 7 -26									*
- * Author: Sooraj									*
- ****************************************************/
+/********************************************************
+ * Name: Circular-Queue-Array                           *
+ * Aim: Program to implement circular queue as an array	*
+ * version: 1										    *
+ * Date: 27 - 7 -26									    *
+ * Author: Sooraj									    *
+ *******************************************************/
 
 #include <stdio.h>
 
