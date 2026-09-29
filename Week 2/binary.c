@@ -19,6 +19,7 @@
  ************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 
 
 /* Function prototype for sorting the array using bubble sort. */
@@ -30,28 +31,28 @@ int binarySearch(int array[], int numberOfElements, int searchElement);
 
 int main()
 {
-    int numberOfElements, searchElement;
+    int x=0, searchElement;
 
     /* Read the number of elements that will be stored in the array. */
     printf("Enter number of elements:\n");
-    scanf("%d", &numberOfElements);
+    scanf("%d", &x);
 
     /* Create an array with the required number of elements. */
-    int array[numberOfElements];
+    int array[x];
 
     /* Read all the elements of the array from the user. */
-    printf("Enter %d elements:\n", numberOfElements);
+    printf("Enter %d elements:\n", x);
 
-    for (int i = 0; i < numberOfElements; i++)
+    for (int i = 0; i < x; i++)
         scanf("%d", &array[i]);
 
     /* Sort the array because binary search requires sorted elements. */
-    sort(array, numberOfElements);
+    sort(array, x);
 
     /* Display the array after sorting. */
     printf("Sorted Array\n");
 
-    for (int i = 0; i < numberOfElements; i++)
+    for (int i = 0; i < x; i++)
         printf("%d\t", array[i]);
 
     printf("\n");
@@ -61,7 +62,7 @@ int main()
     scanf("%d", &searchElement);
 
     /* Perform binary search and store the returned position. */
-    int position = binarySearch(array, numberOfElements, searchElement);
+    int position = binarySearch(array, x, searchElement);
 
     /* A return value of -1 indicates that the element was not found. */
     if (position == -1)
@@ -71,6 +72,7 @@ int main()
     else
         printf("Element found in array at %d\n", position);
 
+    free(array);
     return 0;
 }
 
