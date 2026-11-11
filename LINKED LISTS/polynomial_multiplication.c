@@ -23,7 +23,6 @@ void insertBack(int c, int e, struct node **headRef);   // inserts term at end o
 void insertSorted(int c, int e);            			// inserts term in descending order of exponent
 void displayList(struct node *head);         			// displays polynomial
 void multiplyPolynomials();             		     	// multiplies poly1 and poly2, stores in result
-void combineLikeTerms();                  			    // combines adjacent nodes with same exponent in result list
 
 int main() {
     int deg1, deg2, i, coeff;
