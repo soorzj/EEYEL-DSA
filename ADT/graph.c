@@ -106,6 +106,9 @@ int main(void)
             printf("\n");
             return 0;
             break;
+        case 6:
+            printf("Exiting the Program\n");
+            return 0;
         default:
             printf("Error: invalid choice\n");
             return 1;
