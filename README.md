@@ -1,9 +1,9 @@
 <p align="center">
   <a href="https://soorzj.github.io/soorzj/">
     <img
-      src="https://img.shields.io/badge/Warning-This%20Repository%20is%20Lagging%203%20Weeks%20Behind%20Current%20Cycle-red"
+      src="https://img.shields.io/badge/Info-This%20Repository%20is%20now%20up%20to%20date-green"
       alt="Portfolio"
-      width="90%"
+      width="50%"
     />
        <br><br>
   </a>
@@ -58,19 +58,3 @@ int main()
 
 --- other functions---
 
-```
-# Repository viewer website if you have difficulties in viewing GitHub
-<img width="2048" height="263" alt="Exam_Registration_Problems_and_Solutions" src="https://github.com/user-attachments/assets/ba9ba489-c70d-4b97-8639-6ffc65e4c99d" />
-
-#### USE THE IN BUILT FILE VIEWWER ADJUSTED TO VIEW, COPY OR DOWNLOAD THE PROGRAM FILES WITHIN YOUR BROWSER IN AN INTERACTIVE WAY:
-
-
-
-<p align="center">
-<a href="https://soorzj.github.io/EEYEL-DSA/">
-  <img
-    src="https://img.shields.io/badge/soorzj.github.io-EEYEL--DSA-green"
-    alt="Website"
-    width="70%"
-  />
-</a>
