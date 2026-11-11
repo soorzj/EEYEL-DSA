@@ -135,7 +135,8 @@ void displayList(struct node *head) {
         		if(current->next!=NULL && current->next->coeff>0)
         			printf("+ ");
 				}
-        	}        	
+            else if(current->next!=NULL)
+            	printf("0 + ");}        	
        current = current->next;
     }
     printf("\n");

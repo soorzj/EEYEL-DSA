@@ -35,6 +35,7 @@ int main() {
             case 1:
                 printf("Enter The root element:\n");
                 scanf("%d", &val);
+                count =1;
                 root = createTree(val);
                 printf("Tree created\n");
                 break;
@@ -42,7 +43,6 @@ int main() {
                 displayTree();
                 break;
             case 3:
-                count = 0;
                 if (root == NULL) {
                     printf("Tree is empty\n");
                 }
