@@ -104,7 +104,6 @@ int main(void)
             printf("DFS: ");
             dfs(n, 0, visited);
             printf("\n");
-            return 0;
             break;
         case 6:
             printf("Exiting the Program\n");
@@ -146,7 +145,6 @@ void bfs(int n, int s)
 
     queue[back++] = s;
     visited[s] = 1;
-    printf("BFS: ");
 
     while (front < back)
     {
