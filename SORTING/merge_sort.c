@@ -55,5 +55,8 @@ void merge(int arr[], int left, int mid, int right) {
         k++;
     }
     //copy the remaining back.
-    
+     while (i < a)
+         arr[k++] = left_arr[i++];
+    while (j < b) 
+        arr[k++] = right_arr[j++];
 }               
