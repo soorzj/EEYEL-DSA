@@ -1,6 +1,6 @@
 /***************************************************************
 
-Program to implement single linked list in C using struct *
+Program to implement bubble sort in a single linked list in C using struct *
 Author: SOORAJ *
 Date: 10-8-26 *
 Version: 2 *
