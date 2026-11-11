@@ -113,6 +113,6 @@ int main()
 			printf("Wrong Choice\n");
 			break;
 		}
-        return 0;
 	}
+	return 0;
 }
