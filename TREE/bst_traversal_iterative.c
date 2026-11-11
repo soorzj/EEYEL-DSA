@@ -38,8 +38,10 @@ int main() {
     }
     printf("\nInorder Traversal:\n");
     Inorder(n);
+
     printf("\nPreorder Traversal:\n");
     Preorder(n);
+
     printf("\nPostorder Traversal:\n");
     Postorder(n);
     return 0;
@@ -118,7 +120,7 @@ void Preorder(int n) {
     printf("\n");
 }
 
-void iterativePostorder(int n) {
+void Postorder(int n) {
     if (root == NULL) {
         printf("Tree is empty\n");
         return;
