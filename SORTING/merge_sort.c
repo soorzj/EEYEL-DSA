@@ -18,7 +18,7 @@ int main() {
     for (i = 0; i < n; i++) {
         scanf("%d", &arr[i]);
     }
-    bubblesort(arr, n);
+    merge_sort(arr, 0, n - 1);
     printf("Sorted Array: ");
     for (i = 0; i < n; i++) {
         printf("%d ", arr[i]);
@@ -27,7 +27,7 @@ int main() {
     return 0;
 }
 
-void mergesort(int arr, int left, int right){
+void merge_sort(int arr[], int left, int right){
     if(left<right){
         int mid=(left+right)/2;
         merge_sort(arr, left, mid);
