@@ -4248,7 +4248,3 @@ Element 85 found at index 5 at position 3 in chain
 Enter Your choice: 4
 Exiting Program
 ```
-
-| 15 | Implementation of Quick sort. | 83 | 
-| 16 | Implementation of BFS and DFS on graph. | 85 | 
-| 17 | Implementation of hash table using own mapping functions and observe collisions and overflow resolving schemes. | 89 | 
